@@ -41,6 +41,10 @@ canvas{display:block}
 @media (max-width:899px){#mw{margin-bottom:5.4em}.n13 .num{justify-content:flex-start}.row{flex-direction:row;justify-content:space-between;gap:1em}.n13,.n13 em{text-align:left}.n22,.n22 em{text-align:right}
   aside{gap:.8em;padding:1em 0 .2em}h1{text-align:center;font-size:.9em}.c b{font-size:3.6em}.c em{font-size:1.4em;margin-bottom:.15em}.c small{margin-top:.4em;font-size:.9em}.bar{height:1em;margin-bottom:.5em}.meta span+span{display:none}
   #apu{font-size:1.5em}.ctl button{width:1.9em;height:1.9em;font-size:.9em}.ctl input{height:1.8em}}
+#som{position:fixed;top:1.2em;right:1.2em;z-index:7;width:2.6em;height:2.6em;border:0;border-radius:50%;background:#ffffff14;color:#dfe6f5;cursor:pointer;display:grid;place-items:center;font-size:13px}#som:hover{background:#ffffff26}#som svg{width:1.3em;height:1.3em}
+#ts{position:fixed;right:1.6em;bottom:1.6em;z-index:5;display:flex;flex-direction:column;align-items:flex-end;gap:.4em;pointer-events:none;font-size:13px}
+#ts div{padding:.45em .75em;border-radius:.4em;background:#0b0f1ad9;backdrop-filter:blur(8px);box-shadow:0 0 0 1px #ffffff14;font:600 .9em/1.2 var(--sans);font-variant-numeric:tabular-nums;white-space:nowrap}#ts b.c13{color:#ff5a63}#ts b.c22{color:#7aa8ff}
+@media (max-width:899px){#ts{bottom:6.4em;right:1em}}
 </style><script>window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments)};</script><script defer src="/_vercel/insights/script.js"></script>
 </head><body>
 <div id="st"><aside><h1>2º turno · Presidente</h1>
@@ -49,7 +53,7 @@ canvas{display:block}
 <div class="meta"><b id="apu"></b><span>Eleitorado apurado</span><span id="upd"></span></div></div>
 <div id="dec"></div>
 <div class="ctl"><button id="pl" aria-label="Pausar">❚❚</button><input id="sl" type="range" min="0" max="100" step="0.1" value="0" aria-label="% apurado"></div>
-</aside><div id="mw"><canvas id="m"></canvas><canvas id="fx"></canvas></div><div id="tt"></div></div>
+</aside><div id="mw"><canvas id="m"></canvas><canvas id="fx"></canvas></div><div id="tt"></div></div><button id="som" aria-label="Som"></button><div id="ts"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script><script src="core.js?v=1"></script><script>
 // Véu por região imediata: 510 regiões do IBGE, cada uma com seu eleitorado e seus votos (2º turno 2022 como base da simulação).
 // Cada ponto ≈ VPD eleitores e pertence a uma região; acende com o progresso dela e ganha a cor pela proporção de votos dela.
@@ -132,10 +136,21 @@ Promise.all(['data/ri.json?v=1','data/uf.json?v=1'].map(u=>fetch(u).then(r=>r.js
   const SFX=[1,2,3,4].map(n=>`assets/firework-0${n}.ogg?v=1`);let ac=null,bufs=[],voz=0;
   const unlock=()=>{if(ac)return;ac=new (window.AudioContext||window.webkitAudioContext)();
     SFX.forEach(u=>fetch(u).then(r=>r.arrayBuffer()).then(b=>ac.decodeAudioData(b)).then(x=>bufs.push(x)).catch(()=>{}))};
-  ['pointerdown','keydown','touchstart'].forEach(e=>addEventListener(e,unlock,{once:true,passive:true}));
+  // botão de som (preferência salva); desligado não baixa nada
+  let somOn=true;try{somOn=localStorage.som!=='0'}catch(e){}
+  const ICO={on:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>',
+    off:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="m23 9-6 6M17 9l6 6"/></svg>'};
+  const somUI=()=>{$('som').innerHTML=somOn?ICO.on:ICO.off;$('som').setAttribute('aria-pressed',somOn)};somUI();
+  $('som').onclick=()=>{somOn=!somOn;try{localStorage.som=somOn?'1':'0'}catch(e){}somUI();if(somOn)unlock()};
+  ['pointerdown','keydown','touchstart'].forEach(e=>addEventListener(e,()=>{if(somOn)unlock()},{once:true,passive:true}));
   // no máximo 8 sons simultâneos (rajadas de até 30 foguetes por quadro)
-  function sfx(delay){if(!ac||!bufs.length||voz>=8)return;const s=ac.createBufferSource();s.buffer=bufs[R()*bufs.length|0];s.connect(ac.destination);voz++;s.onended=()=>voz--;s.start(ac.currentTime+delay)}
-  function launch(r,delay=0,k='c13',sc=1){sfx(delay);const x0=r.cx+(R()-.5)*4,o={x:x0,y:r.cy,a:0,trail:true,k},top=r.cy-(6+R()*6)*Math.sqrt(sc);parts.push(o);
+  function sfx(delay){if(!somOn||!ac||!bufs.length||voz>=8)return;const s=ac.createBufferSource();s.buffer=bufs[R()*bufs.length|0];s.connect(ac.destination);voz++;s.onended=()=>voz--;s.start(ac.currentTime+delay)}
+  // aviso no canto inferior direito a cada foguete de votos: "Lula +50 mil votos" (no máximo 4 visíveis)
+  const NOME={c13:'Lula',c22:'Bolsonaro'},abrev=n=>n>=1e6?(n/1e6).toLocaleString('pt-BR')+' mi':(n/1e3|0)+' mil';
+  function toast(k,n,delay){gsap.delayedCall(delay,()=>{const ts=$('ts'),el=document.createElement('div');el.innerHTML=`<b class="${k}">${NOME[k]}</b> +${abrev(n)} votos`;
+    ts.append(el);while(ts.children.length>4)ts.firstChild.remove();
+    gsap.fromTo(el,{opacity:0,x:12},{opacity:1,x:0,duration:.25});gsap.to(el,{opacity:0,duration:.6,delay:2.2,onComplete:()=>el.remove()})})}
+  function launch(r,delay=0,k='c13',sc=1,votos=0){sfx(delay);if(votos)toast(k,votos,delay);const x0=r.cx+(R()-.5)*4,o={x:x0,y:r.cy,a:0,trail:true,k},top=r.cy-(6+R()*6)*Math.sqrt(sc);parts.push(o);
     gsap.to(o,{a:1,duration:.01,delay});
     gsap.to(o,{x:x0+(R()-.5)*3,y:top,duration:.55+R()*.35,delay,ease:'power2.out',onComplete(){parts.splice(parts.indexOf(o),1);burst(o.x,top,k,sc)}})}
   function burst(x,y,k,sc=1){const n=Math.round(36*Math.sqrt(sc)),sp=(4+R()*4)*sc,hue=PAL[k].h;
@@ -193,7 +208,7 @@ Promise.all(['data/ri.json?v=1','data/uf.json?v=1'].map(u=>fetch(u).then(r=>r.js
     const loser=T.p>0&&falta<=0?(lead>0?'c22':'c13'):null;
     for(const k of ['c13','c22']){let sum=0;const dv=RG.map(r=>{const d=Math.max(0,r.v[k]-(r['l'+k]??r.v[k]));r['l'+k]=r.v[k];sum+=d;return d});
       const N=FOGOS(T.p),sc=Math.sqrt(N/2e5);if(skip||k===loser){acc[k]=0;continue}acc[k]+=sum;let n=Math.min(30,acc[k]/N|0);acc[k]-=n*N;
-      while(n-->0){let t=R()*sum,i=0;while(i<RG.length-1&&(t-=dv[i])>0)i++;launch(RG[i],R()*.8,k,sc)}}
+      while(n-->0){let t=R()*sum,i=0;while(i<RG.length-1&&(t-=dv[i])>0)i++;launch(RG[i],R()*.8,k,sc,N)}}
     if(T.p>0&&falta<=0&&lead>0&&!won){won=true;fireworks(++gen)}if(T.p===0||falta>0)won=false;
     if(T.p>0&&falta<=0){dc.className='ok '+(lead>0?'n13':'n22');dc.innerHTML=`<b>${lid} eleito</b>vantagem maior que todo o eleitorado restante`}
     else{dc.className='';dc.innerHTML=`<b>${T.p>0?pct(falta,1):'—'}</b>restante para definição`}
