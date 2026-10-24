@@ -1,1 +1,9 @@
-{ "rewrites": [{ "source": "/", "destination": "/j-regioes-169.html" }], "buildCommand": "", "outputDirectory": "." }
+{
+  "rewrites": [{ "source": "/", "destination": "/j-regioes-169.html" }],
+  "buildCommand": "",
+  "outputDirectory": ".",
+  "headers": [
+    { "source": "/(data|assets)/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }] },
+    { "source": "/core.js", "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }] }
+  ]
+}

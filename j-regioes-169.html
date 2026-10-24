@@ -50,13 +50,13 @@ canvas{display:block}
 <div id="dec"></div>
 <div class="ctl"><button id="pl" aria-label="Pausar">❚❚</button><input id="sl" type="range" min="0" max="100" step="0.1" value="0" aria-label="% apurado"></div>
 </aside><div id="mw"><canvas id="m"></canvas><canvas id="fx"></canvas></div><div id="tt"></div></div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script><script src="core.js"></script><script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script><script src="core.js?v=1"></script><script>
 // Véu por região imediata: 510 regiões do IBGE, cada uma com seu eleitorado e seus votos (2º turno 2022 como base da simulação).
 // Cada ponto ≈ VPD eleitores e pertence a uma região; acende com o progresso dela e ganha a cor pela proporção de votos dela.
 const $=id=>document.getElementById(id),cv=$('m'),G=300;
 const COS=Math.cos(15*Math.PI/180),P=([x,y])=>[x*COS,-y],hex=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
 const MIST=hex('#cfd9ff'),RES={c22:'#4f8bff',c13:'#ff2b38',br:'#4a4e5c',nu:'#262933'},K=['c22','c13','br','nu','ab'];
-Promise.all(['data/ri.json','data/uf.json'].map(u=>fetch(u).then(r=>r.json()))).then(([RG,UFG])=>{
+Promise.all(['data/ri.json?v=1','data/uf.json?v=1'].map(u=>fetch(u).then(r=>r.json()))).then(([RG,UFG])=>{
   // projeção e raster: cada célula guarda o índice da região
   RG.forEach(r=>r.poly=r.poly.map(s=>s.map(P)));const ufp=Object.values(UFG).flat().map(s=>s.map(P));
   let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;for(const r of RG)for(const s of r.poly)for(const[x,y]of s){x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y)}
@@ -102,16 +102,21 @@ Promise.all(['data/ri.json','data/uf.json'].map(u=>fetch(u).then(r=>r.json()))).
   const ease=t=>t<0?0:t>1?1:1-Math.pow(1-t,2),dark=[];let hov=-1,last=0;
   let mx=0,my=0;cv.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;const b=cv.getBoundingClientRect(),x=((e.clientX-b.left)*dim.dpr/dim.p-1)|0,y=((e.clientY-b.top)*dim.dpr/dim.p-1)|0;hov=x>=0&&y>=0&&x<G&&y<H?cell[y*G+x]:-1});
   cv.addEventListener('mouseleave',()=>hov=-1);
-  // ao vivo (?ao-vivo): lê data/live.json do coletor a cada 10s; sem isso, simulação com base em 2022
-  const LIVE_URL=location.hostname.endsWith('vercel.app')?'https://tlnprhxldq2skcrs.public.blob.vercel-storage.com/live.json':'data/live.json';
-  const LIVE=new URLSearchParams(location.search).has('ao-vivo'),byId=new Map(RG.map(r=>[r.id,r]));let LT={e:1,cnt:0,p:0,c13:0,c22:0,br:0,nu:0,ab:0};
-  const liveT=()=>LT;
-  async function poll(){try{const j=await (await fetch(LIVE_URL+'?'+Date.now())).json(),b=j.br;
-      for(const r of RG){const d=j.ri[r.id];if(!d)continue;r.p=d.te?d.est/d.te:0;r.v={c13:d.c13,c22:d.c22,br:d.br,nu:d.nu,ab:d.ab}}
-      $('upd').textContent=`Atualizado às ${(j.tse||'').split(' ')[1]||'—'} · TSE`+(Date.now()-new Date(j.gerado)>180e3?' · coletor parado?':'');
-      LT={e:b.te,p:b.te?b.est/b.te:0,c13:b.c13,c22:b.c22,br:b.br,nu:b.nu,ab:b.ab}}catch(e){console.warn('live.json',e)}}
+  // ao vivo (?ao-vivo): a cada 60s lê live.json (nacional + regiões alteradas desde o snapshot `a`); full.json só na 1ª carga ou se ficou para trás
+  // regiões no formato [apurado/10000, c13, c22] na ordem de ri.json; sem ?ao-vivo, simulação com base em 2022
+  const LIVE_BASE=location.hostname.endsWith('vercel.app')?'https://tlnprhxldq2skcrs.public.blob.vercel-storage.com/':'data/';
+  const LIVE=new URLSearchParams(location.search).has('ao-vivo');let LT={e:1,cnt:0,p:0,c13:0,c22:0,br:0,nu:0,ab:0},seq=0,lastPoll=0;
+  const liveT=()=>LT,get=f=>fetch(LIVE_BASE+f,{cache:'no-cache'}).then(r=>r.json());
+  const setR=(i,p,c13,c22)=>{const r=RG[i];if(r){r.p=p/1e4;r.v={c13,c22}}};
+  async function poll(){lastPoll=Date.now();try{const j=await get('live.json');
+      if(!seq||seq<j.a){const f=await get('full.json');for(let i=0,x=f.r;i<x.length;i+=3)setR(i/3,x[i],x[i+1],x[i+2])}
+      if(j.s!==seq)for(let i=0,x=j.d;i<x.length;i+=4)setR(x[i],x[i+1],x[i+2],x[i+3]);seq=j.s;
+      const[te,est,c13,c22,br,nu,ab]=j.b;LT={e:te,p:te?est/te:0,c13,c22,br,nu,ab};
+      $('upd').textContent=`Atualizado às ${j.t||'—'} · TSE`+(Date.now()/1e3-j.s>300?' · coletor parado?':'')}catch(e){console.warn('live',e)}}
   $('upd').textContent='Simulação · base 2º turno 2022';
-  if(LIVE){document.body.classList.add('live');$('upd').textContent='Conectando…';RG.forEach(r=>{r.p=0;r.v={c13:0,c22:0,br:0,nu:0,ab:0}});poll();setInterval(poll,10e3)}
+  if(LIVE){document.body.classList.add('live');$('upd').textContent='Conectando…';RG.forEach(r=>{r.p=0;r.v={c13:0,c22:0}});poll();
+    // aba oculta não consulta; ao voltar, atualiza na hora se já passou 1 min
+    setInterval(()=>{if(!document.hidden)poll()},60e3);document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now()-lastPoll>60e3)poll()})}
   // fogos (gsap): vitória de Lula → foguetes sobem do sul do mapa e explodem em vermelho sobre centróides de regiões sorteadas
   const fxc=$('fx'),fc2=fxc.getContext('2d'),parts=[];let won=false,gen=0;
   // vitória nacional → contínuo enquanto Lula estiver eleito: a cada 0,12–0,45s um foguete sai de uma região onde Lula venceu,
@@ -123,7 +128,14 @@ Promise.all(['data/ri.json','data/uf.json'].map(u=>fetch(u).then(r=>r.json()))).
   const FOGOS=p=>p<.4?2e6:p<.7?6e5:p<.9?2e5:5e4,acc={c13:0,c22:0};
   // um foguete a partir da região r
   const PAL={c13:{t:'#ffb3b8',g:'#ff2b38',h:['#ff2b38','#ff5a63','#ff8a90','#ffd0d3']},c22:{t:'#b8d0ff',g:'#4f8bff',h:['#4f8bff','#7aa8ff','#a8c6ff','#dbe7ff']}};
-  function launch(r,delay=0,k='c13',sc=1){const x0=r.cx+(R()-.5)*4,o={x:x0,y:r.cy,a:0,trail:true,k},top=r.cy-(6+R()*6)*Math.sqrt(sc);parts.push(o);
+  // som: um dos 4 oggs, sorteado, a cada foguete; só baixa/decodifica após o 1º toque/clique (política de autoplay), cache longo no navegador
+  const SFX=[1,2,3,4].map(n=>`assets/firework-0${n}.ogg?v=1`);let ac=null,bufs=[],voz=0;
+  const unlock=()=>{if(ac)return;ac=new (window.AudioContext||window.webkitAudioContext)();
+    SFX.forEach(u=>fetch(u).then(r=>r.arrayBuffer()).then(b=>ac.decodeAudioData(b)).then(x=>bufs.push(x)).catch(()=>{}))};
+  ['pointerdown','keydown','touchstart'].forEach(e=>addEventListener(e,unlock,{once:true,passive:true}));
+  // no máximo 8 sons simultâneos (rajadas de até 30 foguetes por quadro)
+  function sfx(delay){if(!ac||!bufs.length||voz>=8)return;const s=ac.createBufferSource();s.buffer=bufs[R()*bufs.length|0];s.connect(ac.destination);voz++;s.onended=()=>voz--;s.start(ac.currentTime+delay)}
+  function launch(r,delay=0,k='c13',sc=1){sfx(delay);const x0=r.cx+(R()-.5)*4,o={x:x0,y:r.cy,a:0,trail:true,k},top=r.cy-(6+R()*6)*Math.sqrt(sc);parts.push(o);
     gsap.to(o,{a:1,duration:.01,delay});
     gsap.to(o,{x:x0+(R()-.5)*3,y:top,duration:.55+R()*.35,delay,ease:'power2.out',onComplete(){parts.splice(parts.indexOf(o),1);burst(o.x,top,k,sc)}})}
   function burst(x,y,k,sc=1){const n=Math.round(36*Math.sqrt(sc)),sp=(4+R()*4)*sc,hue=PAL[k].h;

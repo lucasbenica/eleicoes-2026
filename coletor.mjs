@@ -13,7 +13,9 @@ import { fileURLToPath } from 'url';
 const ELE = process.argv.find(a => /^\d+$/.test(a)) || '6258', ONCE = process.argv.includes('--once');
 const RPS = +(process.env.RPS || 20), CONC = +(process.env.CONC || 4), CICLO = 60e3, PAUSA_BLOQ = 11 * 60e3;
 const BASE = `https://resultados.tse.jus.br/oficial/ele2026/${ELE}`, E6 = ELE.padStart(6, '0');
-const OUT = fileURLToPath(new URL('./data/live.json', import.meta.url)), MUNRI = JSON.parse(fs.readFileSync(new URL('./data/mun-ri.json', import.meta.url)));
+const DIR = fileURLToPath(new URL('./data/', import.meta.url)), MUNRI = JSON.parse(fs.readFileSync(new URL('./data/mun-ri.json', import.meta.url)));
+// ordem das regiões = ordem de data/ri.json (o site já tem esse arquivo em cache; o índice substitui o id)
+const RI_IDX = new Map(JSON.parse(fs.readFileSync(new URL('./data/ri.json', import.meta.url))).map((r, i) => [String(r.id), i]));
 const log = (...a) => console.log(new Date().toTimeString().slice(0, 8), ...a);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -43,6 +45,14 @@ function extrai(j) { // EA20 (-u.json): presidente = carg[0]
   return { te: num(j.e?.te), est: num(j.e?.est), pst: num(j.s?.pst) / 100, ab: num(j.e?.a), br: num(j.v?.vb), nu: num(j.v?.tvn), ...v, dt: j.dt, ht: j.ht, and: j.and };
 }
 
+// histórico dos últimos snapshots: o delta cobre quem perdeu até JANELA-1 ciclos
+const JANELA = 5, hist = []; let ultimoFull = null;
+async function publica(nome, obj) {
+  const txt = JSON.stringify(obj), f = DIR + nome;
+  fs.writeFileSync(f + '.tmp', txt); fs.renameSync(f + '.tmp', f);
+  // publica no Vercel Blob (lido pelo site em produção) se houver token
+  if (process.env.BLOB_READ_WRITE_TOKEN) await put(nome, txt, { access: 'public', addRandomSuffix: false, allowOverwrite: true, cacheControlMaxAge: 60, contentType: 'application/json' }).catch(e => log('blob:', e.message));
+}
 const cache = new Map(), mun = new Map(), assinatura = new Map(), naoExiste = new Set();
 async function ciclo() {
   const cfg = await get(`${BASE}/config/mun-e${E6}-cm.json`, cache);
@@ -70,10 +80,18 @@ async function ciclo() {
     const r = ri[id] ??= { te: 0, est: 0, c13: 0, c22: 0, br: 0, nu: 0, ab: 0 };
     for (const k in r) r[k] += d[k];
   }
-  const B = extrai(br), out = { ele: ELE, gerado: new Date().toISOString(), tse: `${B.dt} ${B.ht}`, br: B, ri, municipios: mun.size };
-  fs.writeFileSync(OUT + '.tmp', JSON.stringify(out)); fs.renameSync(OUT + '.tmp', OUT);
-  // publica no Vercel Blob (lido pelo site em produção) se houver token
-  if (process.env.BLOB_READ_WRITE_TOKEN) await put('live.json', JSON.stringify(out), { access: 'public', addRandomSuffix: false, allowOverwrite: true, cacheControlMaxAge: 60, contentType: 'application/json' }).catch(e => log('blob:', e.message));
+  // formato compacto: b = [te, est, c13, c22, br, nu, ab] nacional; região = [apurado em 1/10000, c13, c22] na ordem de ri.json
+  //  full.json: r = todas as regiões; live.json: d = [índice, …valores] só das que mudaram desde o snapshot `a` (valores absolutos → idempotente)
+  const B = extrai(br), s = Math.floor(Date.now() / 1000), b = [B.te, B.est, B.c13, B.c22, B.br, B.nu, B.ab];
+  const cur = Array.from({ length: RI_IDX.size }, () => [0, 0, 0]);
+  for (const [id, r] of Object.entries(ri)) { const i = RI_IDX.get(id); if (i !== undefined) cur[i] = [r.te ? Math.round(r.est / r.te * 1e4) : 0, r.c13, r.c22]; }
+  const base = hist[0], d = [];
+  if (base) cur.forEach((v, i) => { if (v.some((x, k) => x !== base.cur[i][k])) d.push(i, ...v) });
+  const mudouFull = !ultimoFull || cur.some((v, i) => v.some((x, k) => x !== ultimoFull[i][k]));
+  hist.push({ s, cur }); if (hist.length > JANELA) hist.shift();
+  const live = { s, a: base ? base.s : s, t: B.ht, b, d }, full = { s, t: B.ht, b, r: cur.flat() };
+  await publica('live.json', live);
+  if (mudouFull) { await publica('full.json', full); ultimoFull = cur; }
   log(`ok · ${(B.pst * 100).toFixed(2)}% seções · ${mun.size} municípios · ${nReq} req no total`);
 }
 
