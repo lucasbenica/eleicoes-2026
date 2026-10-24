@@ -59,7 +59,7 @@ canvas{display:block}
 // Cada ponto ≈ VPD eleitores e pertence a uma região; acende com o progresso dela e ganha a cor pela proporção de votos dela.
 const $=id=>document.getElementById(id),cv=$('m'),G=300;
 const COS=Math.cos(15*Math.PI/180),P=([x,y])=>[x*COS,-y],hex=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
-const MIST=hex('#cfd9ff'),RES={c22:'#4f8bff',c13:'#ff2b38',br:'#4a4e5c',nu:'#262933'},K=['c22','c13','br','nu','ab'];
+const MIST=hex('#cfd9ff'),RES={c22:'#2e8bff',c13:'#ff3344',br:'#4a4e5c',nu:'#262933'},K=['c22','c13','br','nu','ab'];
 Promise.all(['data/ri.json?v=2','data/uf.json?v=2'].map(u=>fetch(u).then(r=>r.json()))).then(([RG,UFG])=>{
   // projeção e raster: cada célula guarda o índice da região
   RG.forEach(r=>r.poly=r.poly.map(s=>s.map(P)));const ufp=Object.values(UFG).flat().map(s=>s.map(P));
@@ -101,7 +101,7 @@ Promise.all(['data/ri.json?v=2','data/uf.json?v=2'].map(u=>fetch(u).then(r=>r.js
   gsap.to(fog,{br:.8,duration:6.5,ease:sine,yoyo:true,repeat:-1});
   let fc,fx;
   // sprites: disco (diâmetro s) por categoria
-  const spr={},OP={c13:.3,c22:.3,br:.3,nu:.3};function sprites(s){spr.s=s;for(const k in RES){const o=new OffscreenCanvas(s*2,s*2),x=o.getContext('2d');x.fillStyle=RES[k];x.beginPath();x.arc(s,s,s/2,0,7);x.fill();spr[k]=o}}
+  const spr={},OP={c13:.8,c22:.8,br:.8,nu:.8};function sprites(s){spr.s=s;for(const k in RES){const o=new OffscreenCanvas(s*2,s*2),x=o.getContext('2d');x.fillStyle=RES[k];x.beginPath();x.arc(s,s,s/2,0,7);x.fill();spr[k]=o}}
   const bigPct=x=>pct(x,2);
   const ease=t=>t<0?0:t>1?1:1-Math.pow(1-t,2),dark=[];let hov=-1,last=0;
   let mx=0,my=0;cv.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;const b=cv.getBoundingClientRect(),x=((e.clientX-b.left)*dim.dpr/dim.p-1)|0,y=((e.clientY-b.top)*dim.dpr/dim.p-1)|0;hov=x>=0&&y>=0&&x<G&&y<H?cell[y*G+x]:-1});
@@ -172,7 +172,12 @@ Promise.all(['data/ri.json?v=2','data/uf.json?v=2'].map(u=>fetch(u).then(r=>r.js
     const T=LIVE?liveT():simulate(Math.min(1,tt)),stamp=jump||now-last>600?now-1e6:now,skip=jump||now-last>600;last=now;jump=false;dark.length=0;if(play)sl.value=T.p*100;
     for(const r of RG){const k=Math.round(r.n*r.p);if(k<r.k)r.ts.fill(0);for(let j=r.k;j<k;j++)if(!r.ts[j])r.ts[j]=stamp;r.k=k;
       const sum=K.reduce((t,c)=>t+r.v[c],0)||1;let acc=0;const bd=K.map(c=>Math.round(acc+=r.v[c]/sum*k));
-      for(let n=0,ci=0;n<k;n++){while(ci<5&&n>=bd[ci])ci++;const t=ease((now-r.ts[n])/4000);if(t<=0)continue;const[x,y]=r.pts[n],cat=K[ci];
+      // núcleo e borda: quais pontos votaram em candidato segue o sorteio; entre eles, o vencedor da região fica no centro e o perdedor na borda
+      const cats=new Array(k);let a13=0,a22=0;for(let n=0,ci=0;n<k;n++){while(ci<5&&n>=bd[ci])ci++;const c=cats[n]=K[ci];if(c==='c13')a13++;else if(c==='c22')a22++}
+      r.ord??=r.pts.map(([x,y],i)=>[(x-r.cx)**2+(y-r.cy)**2,i]).sort((a,b)=>a[0]-b[0]).map(e=>e[1]);
+      const win=r.v.c13>=r.v.c22?'c13':'c22',los=win==='c13'?'c22':'c13';let nw=win==='c13'?a13:a22;
+      for(const i of r.ord)if(i<k&&(cats[i]==='c13'||cats[i]==='c22'))cats[i]=nw-->0?win:los;
+      for(let n=0;n<k;n++){const t=ease((now-r.ts[n])/4000);if(t<=0)continue;const[x,y]=r.pts[n],cat=cats[n];
         if(cat==='c13'||cat==='c22')dark.push(x,y,t,cat)}}
     for(const r of RG)r.fog+=(1-r.p-r.fog)*.04;
     const md=mi.data;md.fill(0);
@@ -186,9 +191,9 @@ Promise.all(['data/ri.json?v=2','data/uf.json?v=2'].map(u=>fetch(u).then(r=>r.js
     fx.globalAlpha=.6;pat.setTransform(new DOMMatrix().translate(fog.bx*ps,fog.by*ps).scale(ps*.5));fx.fillStyle=pat;fx.fillRect(0,0,fw,fh);
     fx.globalAlpha=1;fx.fillStyle=`rgba(${MIST},.22)`;fx.fillRect(0,0,fw,fh);
     fx.globalCompositeOperation='destination-in';fx.filter=`blur(${ps*3}px)`;fx.drawImage(mist,0,0,fw,fh);fx.filter='none';
-    c.globalAlpha=fog.br;c.filter=`blur(${p*1.2}px)`;c.drawImage(fc,0,0,cv.width,cv.height);c.filter='none';
-    // só 13 e 22 no mapa (brancos, nulos e abstenção não aparecem); círculos somados ('lighter') a 30%; onde se sobrepõem, a luz acumula
-    const s=Math.max(dpr*1.2,p*.6);if(spr.s!==s)sprites(s);c.globalCompositeOperation='lighter';
+    c.globalAlpha=Math.min(1,fog.br*1.05);c.filter=`blur(${p*1.2}px)`;c.drawImage(fc,0,0,cv.width,cv.height);c.filter='none';
+    // só 13 e 22 no mapa (brancos, nulos e abstenção não aparecem); círculos pequenos e opacos (80%), sem soma de luz
+    const s=Math.max(dpr*1.2,p*.3);if(spr.s!==s)sprites(s);
     for(let i=0;i<dark.length;i+=4){c.globalAlpha=dark[i+2]*OP[dark[i+3]];c.drawImage(spr[dark[i+3]],(dark[i]+1)*p-s,(dark[i+1]+1)*p-s)}
     c.globalCompositeOperation='source-over';c.globalAlpha=1;c.lineJoin='round';
     c.lineWidth=dpr*.5;c.strokeStyle='rgba(207,217,255,.06)';c.stroke(pr);
