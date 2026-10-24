@@ -60,7 +60,7 @@ canvas{display:block}
 const $=id=>document.getElementById(id),cv=$('m'),G=300;
 const COS=Math.cos(15*Math.PI/180),P=([x,y])=>[x*COS,-y],hex=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
 const MIST=hex('#cfd9ff'),RES={c22:'#4f8bff',c13:'#ff2b38',br:'#4a4e5c',nu:'#262933'},K=['c22','c13','br','nu','ab'];
-Promise.all(['data/ri.json?v=2','data/uf.json?v=1'].map(u=>fetch(u).then(r=>r.json()))).then(([RG,UFG])=>{
+Promise.all(['data/ri.json?v=2','data/uf.json?v=2'].map(u=>fetch(u).then(r=>r.json()))).then(([RG,UFG])=>{
   // projeção e raster: cada célula guarda o índice da região
   RG.forEach(r=>r.poly=r.poly.map(s=>s.map(P)));const ufp=Object.values(UFG).flat().map(s=>s.map(P));
   let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;for(const r of RG)for(const s of r.poly)for(const[x,y]of s){x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y)}
