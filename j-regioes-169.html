@@ -32,7 +32,7 @@ canvas{display:block}
 #dec{position:fixed;left:1.6em;bottom:1.6em;z-index:5;padding:.8em 1em;border-radius:.4em;background:#0b0f1ad9;backdrop-filter:blur(8px);box-shadow:0 0 0 1px #ffffff14;display:flex;justify-content:flex-start;align-items:baseline;gap:.6em;font:600 .95em/1.2 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:#dfe6f5a0;text-align:right}#dec b{white-space:nowrap;font:800 1.9em/1 var(--sans);letter-spacing:-.02em;color:#dfe6f5;font-variant-numeric:tabular-nums}
 
 .vv{display:block;margin-top:.25em;font:600 1.15em/1 var(--sans);opacity:.55;font-variant-numeric:tabular-nums}
-#dec.ok{box-shadow:0 0 0 1px #ffffff30}#dec.n13 b{color:#ff2b38}#dec.n22 b{color:#4f8bff}
+#dec.ok{box-shadow:0 0 0 1px #ffffff30;padding:1em 1.4em}#dec.ok b{font-size:4.2em;letter-spacing:-.03em;text-transform:uppercase}#dec.n13 b{color:#ff2b38}#dec.n22 b{color:#4f8bff}
 #tt{position:fixed;z-index:6;pointer-events:none;min-width:13em;padding:.75em .9em;border-radius:.45em;background:#f4f6fb;color:#11151f;font:500 12px/1.35 var(--sans);box-shadow:0 8px 28px #0008;opacity:0;transition:opacity .12s;font-variant-numeric:tabular-nums}
 #tt h3{margin:0;font:700 1.05em/1.2 var(--sans)}#tt .s{margin:.15em 0 .6em;font-size:.85em;color:#11151f8c;letter-spacing:.06em;text-transform:uppercase}
 #tt .l{display:flex;justify-content:space-between;gap:1em;font-weight:700}#tt .l span{font-weight:500;color:#11151fa0}#tt .b{display:flex;height:.4em;margin-top:.55em;border-radius:.2em;overflow:hidden;background:#11151f14}#tt .b i{display:block}
@@ -215,7 +215,7 @@ Promise.all(['data/ri.json?v=2','data/uf.json?v=2'].map(u=>fetch(u).then(r=>r.js
       const N=FOGOS(T.p),sc=Math.sqrt(N/2e5);if(skip||k===loser){acc[k]=0;continue}acc[k]+=sum;let n=Math.min(30,acc[k]/N|0);acc[k]-=n*N;
       while(n-->0){let t=R()*sum,i=0;while(i<RG.length-1&&(t-=dv[i])>0)i++;launch(RG[i],R()*.8,k,sc,N)}}
     if(T.p>0&&falta<=0&&lead>0&&!won){won=true;fireworks(++gen)}if(T.p===0||falta>0)won=false;
-    if(T.p>0&&falta<=0){dc.className='ok '+(lead>0?'n13':'n22');dc.innerHTML=`<b>${lid} eleito</b>vantagem maior que todo o eleitorado restante`}
+    if(T.p>0&&falta<=0){dc.className='ok '+(lead>0?'n13':'n22');dc.innerHTML=`<b>${lid} eleito</b>`}
     else{dc.className='';dc.innerHTML=`<b>${T.p>0?pct(falta,1):'—'}</b>restante para definição`}
     // barra = votos 13 + votos 22 + eleitorado não apurado; o corte (meio) é a vantagem matemática: quem cruzar vence
     const S=T.c13+T.c22+rest||1;$('b13').style.width=T.c13/S*100+'%';$('b22').style.width=T.c22/S*100+'%';
