@@ -102,7 +102,7 @@ Promise.all(['data/ri.json','data/uf.json'].map(u=>fetch(u).then(r=>r.json()))).
   let mx=0,my=0;cv.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;const b=cv.getBoundingClientRect(),x=((e.clientX-b.left)*dim.dpr/dim.p-1)|0,y=((e.clientY-b.top)*dim.dpr/dim.p-1)|0;hov=x>=0&&y>=0&&x<G&&y<H?cell[y*G+x]:-1});
   cv.addEventListener('mouseleave',()=>hov=-1);
   // ao vivo (?ao-vivo): lê data/live.json do coletor a cada 10s; sem isso, simulação com base em 2022
-  const LIVE_URL='data/live.json';
+  const LIVE_URL=location.hostname.endsWith('vercel.app')?'https://tlnprhxldq2skcrs.public.blob.vercel-storage.com/live.json':'data/live.json';
   const LIVE=new URLSearchParams(location.search).has('ao-vivo'),byId=new Map(RG.map(r=>[r.id,r]));let LT={e:1,cnt:0,p:0,c13:0,c22:0,br:0,nu:0,ab:0};
   const liveT=()=>LT;
   async function poll(){try{const j=await (await fetch(LIVE_URL+'?'+Date.now())).json(),b=j.br;
