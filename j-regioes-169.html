@@ -1,0 +1,192 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Apuração · Véu · responsivo</title><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--sans:'Inter',system-ui,sans-serif}
+body{margin:0;background:radial-gradient(120% 80% at 50% 30%,#0e1424 0%,#05060b 70%) fixed;min-height:100vh;color:#dfe6f5;font:13px/1.3 var(--sans)}
+/* vertical (padrão): cabeçalho compacto, Lula à esquerda e Bolsonaro à direita; mapa ocupa o resto da tela */
+body{height:100vh;height:100dvh;overflow:hidden}
+#st{display:flex;flex-direction:column;height:100%;font-size:clamp(9px,2.6vw,14px)}
+aside{display:flex;flex-direction:column;gap:1.3em;width:calc(100% - 2.4em);margin:0 auto;padding:1.8em 0 .4em}
+#mw{position:relative;flex:1;min-height:0}#mw canvas{position:absolute;inset:0;margin:auto}
+/* horizontal: palco 16:9, placar à esquerda */
+@media (min-width:900px){body{height:100vh;overflow:hidden;display:flex;align-items:center;justify-content:center}
+  #st{width:min(100vw,177.78vh);height:min(56.25vw,100vh);display:grid;grid-template-columns:32% 1fr;font-size:min(1vw,1.78vh)}
+  aside{justify-content:center;width:auto;margin:0;padding:0 2em 0 3.6em}#mw{min-width:0;min-height:0}}
+.ctl{display:flex;align-items:center;gap:1em}
+.ctl button{flex:none;width:2.6em;height:2.6em;border:0;border-radius:50%;background:#ffffff14;color:#dfe6f5;font:700 1em/1 var(--sans);cursor:pointer}.ctl button:hover{background:#ffffff26}
+.ctl input{flex:1;accent-color:#dfe6f5;height:2.6em;margin:0;cursor:pointer}
+
+h1{margin:0;font:700 1em/1 var(--sans);letter-spacing:.3em;text-transform:uppercase;opacity:.45;white-space:nowrap}
+.row{display:flex;flex-direction:column;gap:1.8em}
+.c{text-align:right}.c b{display:block;font:800 6.4em/1 var(--sans);font-variant-numeric:tabular-nums;letter-spacing:-.045em}.c em{display:block;text-align:left;font:800 2.2em/1 var(--sans);font-style:normal;letter-spacing:-.02em;margin-bottom:.3em}.c small{display:block;font:600 1em/1 var(--sans);letter-spacing:.2em;opacity:.5;margin-top:.9em;text-transform:uppercase}
+.n13 em{color:#ffb8bd}.n22 em{color:#8b9cc4}.n22 b{color:#8b9cc4}.n13 b{color:#ff4a55;text-shadow:0 0 24px #ff2b3899,0 0 60px #ff2b3855}
+.bar{position:relative;height:2.4em;margin:0 0 .9em;background:#ffffff10;border-radius:.25em;overflow:hidden}.bar>i{position:absolute;top:0;height:100%;transition:width .4s}
+#b13{left:0;background:#ff2b38}#b22{right:0;background:#4f8bff}
+.cut{position:absolute;left:50%;top:-.35em;bottom:-.35em;width:2px;margin-left:-1px;background:#dfe6f5;border-radius:1px}.bar{overflow:visible}#b13{border-radius:.25em 0 0 .25em}#b22{border-radius:0 .25em .25em 0}
+.meta{display:flex;flex-direction:column;align-items:center;gap:.35em;text-align:center;white-space:nowrap}#apu{font:800 1.9em/1 var(--sans);font-variant-numeric:tabular-nums}.meta #upd{margin-top:.3em;letter-spacing:.08em;text-transform:none;opacity:.4}
+.meta span{font:600 .8em/1 var(--sans);letter-spacing:.2em;text-transform:uppercase;opacity:.5}
+canvas{display:block}
+
+.num{display:flex;justify-content:flex-end;align-items:baseline;gap:.9em}
+.live .ctl{display:none}
+#dec{position:fixed;left:1.6em;bottom:1.6em;z-index:5;padding:.8em 1em;border-radius:.4em;background:#0b0f1ad9;backdrop-filter:blur(8px);box-shadow:0 0 0 1px #ffffff14;display:flex;justify-content:flex-start;align-items:baseline;gap:.6em;font:600 .95em/1.2 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:#dfe6f5a0;text-align:right}#dec b{white-space:nowrap;font:800 1.9em/1 var(--sans);letter-spacing:-.02em;color:#dfe6f5;font-variant-numeric:tabular-nums}
+
+.vv{display:block;margin-top:.25em;font:600 1.15em/1 var(--sans);opacity:.55;font-variant-numeric:tabular-nums}
+#dec.ok{box-shadow:0 0 0 1px #ffffff30}#dec.n13 b{color:#ff2b38}#dec.n22 b{color:#4f8bff}
+#tt{position:fixed;z-index:6;pointer-events:none;min-width:13em;padding:.75em .9em;border-radius:.45em;background:#f4f6fb;color:#11151f;font:500 12px/1.35 var(--sans);box-shadow:0 8px 28px #0008;opacity:0;transition:opacity .12s;font-variant-numeric:tabular-nums}
+#tt h3{margin:0;font:700 1.05em/1.2 var(--sans)}#tt .s{margin:.15em 0 .6em;font-size:.85em;color:#11151f8c;letter-spacing:.06em;text-transform:uppercase}
+#tt .l{display:flex;justify-content:space-between;gap:1em;font-weight:700}#tt .l span{font-weight:500;color:#11151fa0}#tt .b{display:flex;height:.4em;margin-top:.55em;border-radius:.2em;overflow:hidden;background:#11151f14}#tt .b i{display:block}
+#fx{position:absolute;inset:0;margin:auto;pointer-events:none}
+/* vertical: sobrescreve as regras base acima */
+@media (max-width:899px){#mw{margin-bottom:5.4em}.n13 .num{justify-content:flex-start}.row{flex-direction:row;justify-content:space-between;gap:1em}.n13,.n13 em{text-align:left}.n22,.n22 em{text-align:right}
+  aside{gap:.8em;padding:1em 0 .2em}h1{text-align:center;font-size:.9em}.c b{font-size:3.6em}.c em{font-size:1.4em;margin-bottom:.15em}.c small{margin-top:.4em;font-size:.9em}.bar{height:1em;margin-bottom:.5em}.meta span+span{display:none}
+  #apu{font-size:1.5em}.ctl button{width:1.9em;height:1.9em;font-size:.9em}.ctl input{height:1.8em}}
+</style></head><body>
+<div id="st"><aside><h1>2º turno · Presidente</h1>
+<div class="row"><div class="c n13"><em>Lula</em><div class="num"><b id="p13"></b></div><span class="vv" id="w13"></span><small><span id="v13"></span> votos</small></div><div class="c r n22"><em>Bolsonaro</em><div class="num"><b id="p22"></b></div><span class="vv" id="w22"></span><small><span id="v22"></span> votos</small></div></div>
+<div><div class="bar"><i id="b13"></i><i id="b22"></i><span class="cut" title="Corte: quem passar daqui vence matematicamente"></span></div>
+<div class="meta"><b id="apu"></b><span>Eleitorado apurado</span><span id="upd"></span></div></div>
+<div id="dec"></div>
+<div class="ctl"><button id="pl" aria-label="Pausar">❚❚</button><input id="sl" type="range" min="0" max="100" step="0.1" value="0" aria-label="% apurado"></div>
+</aside><div id="mw"><canvas id="m"></canvas><canvas id="fx"></canvas></div><div id="tt"></div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script><script src="core.js"></script><script>
+// Véu por região imediata: 510 regiões do IBGE, cada uma com seu eleitorado e seus votos (2º turno 2022 como base da simulação).
+// Cada ponto ≈ VPD eleitores e pertence a uma região; acende com o progresso dela e ganha a cor pela proporção de votos dela.
+const $=id=>document.getElementById(id),cv=$('m'),G=300;
+const COS=Math.cos(15*Math.PI/180),P=([x,y])=>[x*COS,-y],hex=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
+const MIST=hex('#cfd9ff'),RES={c22:'#4f8bff',c13:'#ff2b38',br:'#4a4e5c',nu:'#262933'},K=['c22','c13','br','nu','ab'];
+Promise.all(['data/ri.json','data/uf.json'].map(u=>fetch(u).then(r=>r.json()))).then(([RG,UFG])=>{
+  // projeção e raster: cada célula guarda o índice da região
+  RG.forEach(r=>r.poly=r.poly.map(s=>s.map(P)));const ufp=Object.values(UFG).flat().map(s=>s.map(P));
+  let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;for(const r of RG)for(const s of r.poly)for(const[x,y]of s){x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y)}
+  const k=G/(x1-x0),H=Math.ceil((y1-y0)*k),tx=([x,y])=>[(x-x0)*k,(y-y0)*k];
+  RG.forEach(r=>r.poly=r.poly.map(s=>s.map(tx)));const ufs=ufp.map(s=>s.map(tx));
+  const oc=new OffscreenCanvas(G,H),o=oc.getContext('2d');
+  RG.forEach((r,i)=>{o.fillStyle=`rgb(${(i+1)>>8},${(i+1)&255},0)`;o.beginPath();for(const s of r.poly){s.forEach(([x,y],j)=>o[j?'lineTo':'moveTo'](x,y));o.closePath()}o.fill()});
+  const d=o.getImageData(0,0,G,H).data,cell=new Int16Array(G*H).fill(-1),cnt=RG.map(()=>0);
+  for(let q=0;q<G*H;q++)if(d[q*4+3]>250&&d[q*4+2]===0){const i=(d[q*4]<<8|d[q*4+1])-1;if(i>=0&&i<RG.length){cell[q]=i;cnt[i]++}}
+  // pontos: grade escalonada por região com passo sqrt(área/n); região sem célula → pontos ao redor do centróide
+  const R=rnd(11);let N=0;
+  RG.forEach((r,i)=>{r.n=Math.max(1,Math.round(r.e/VPD));N+=r.n;const pts=[];
+    if(cnt[i]){const pitch=Math.sqrt(cnt[i]/r.n);for(let y=pitch/2,row=0;y<H;y+=pitch,row++)for(let x=pitch/2+(row%2?pitch/2:0);x<G;x+=pitch)if(cell[(y|0)*G+(x|0)]===i)pts.push([x,y])}
+    const[cx,cy]=r.poly[0].reduce((a,p)=>[a[0]+p[0]/r.poly[0].length,a[1]+p[1]/r.poly[0].length],[0,0]);
+    while(pts.length<r.n){const a=R()*7,m=Math.sqrt(R())*Math.sqrt(r.n)*.25;pts.push([cx+Math.cos(a)*m,cy+Math.sin(a)*m])}
+    for(let j=pts.length-1;j>0;j--){const t=R()*(j+1)|0;[pts[j],pts[t]]=[pts[t],pts[j]]}
+    r.pts=pts.slice(0,r.n);r.ts=new Float64Array(r.n);r.k=0;r.cx=cx;r.cy=cy});
+  // simulação: atraso por UF + ruído por região; capitais (região mais populosa da UF) um pouco mais rápidas
+  const ufOff={},big={};RG.forEach(r=>{ufOff[r.uf]??=R()*.22;if(!big[r.uf]||r.e>big[r.uf].e)big[r.uf]=r});
+  RG.forEach(r=>{r.off=Math.max(0,ufOff[r.uf]+(R()-.5)*.18-(big[r.uf]===r?.08:0));r.spd=1.2+R()*.9;r.v={};r.p=0});
+  function simulate(t){const T={e:0,cnt:0,c22:0,c13:0,br:0,nu:0,ab:0};
+    for(const r of RG){r.p=Math.max(0,Math.min(1,(t-r.off)*r.spd*1.35));for(const c of K){r.v[c]=r[c]*r.p;T[c]+=r.v[c]}T.e+=r.e;T.cnt+=r.e*r.p}T.p=T.cnt/T.e;return T}
+  // contorno: UF forte, região fraca (Path2D refeito no resize)
+  let dim,pr,pu;const path=(rings,p)=>{const h=new Path2D();for(const s of rings){s.forEach(([x,y],j)=>h[j?'lineTo':'moveTo']((x+1)*p,(y+1)*p));h.closePath()}return h};
+  function fit(){const dpr=devicePixelRatio||1,box=$('mw'),u=Math.min(box.clientWidth/(G+2),box.clientHeight*.96/(H+2)),p=u*dpr;cv.width=Math.round((G+2)*p);cv.height=Math.round((H+2)*p);cv.style.width=cv.width/dpr+'px';cv.style.height=cv.height/dpr+'px';dim={p,dpr};pr=path(RG.flatMap(r=>r.poly),p);pu=path(ufs,p)}
+  fit();new ResizeObserver(fit).observe($('mw'));
+  // névoa: máscara por região (1-p, suavizada) × textura de ruído tileável em duas camadas que derivam (gsap)
+  const W=G+2,mist=new OffscreenCanvas(W,H+2),mc=mist.getContext('2d'),mi=mc.createImageData(W,H+2);RG.forEach(r=>r.fog=1);
+  const NZ=256,nz=new OffscreenCanvas(NZ,NZ),nd=nz.getContext('2d').createImageData(NZ,NZ),NR=rnd(5),lat=[4,8,16,32].map(n=>({n,v:Float32Array.from({length:n*n},NR)}));
+  const sm=t=>t*t*(3-2*t);
+  for(let y=0;y<NZ;y++)for(let x=0;x<NZ;x++){let v=0,a=.5,t=0;for(const{n,v:L}of lat){const fx=x/NZ*n,fy=y/NZ*n,i=fx|0,j=fy|0,u=sm(fx-i),w=sm(fy-j),I=(i+1)%n,J=(j+1)%n;
+      v+=a*((L[j*n+i]*(1-u)+L[j*n+I]*u)*(1-w)+(L[J*n+i]*(1-u)+L[J*n+I]*u)*w);t+=a;a*=.55}
+    v=Math.max(0,Math.min(1,(v/t-.28)/.6));const q=(y*NZ+x)*4;nd.data[q]=MIST[0];nd.data[q+1]=MIST[1];nd.data[q+2]=MIST[2];nd.data[q+3]=255*v}
+  nz.getContext('2d').putImageData(nd,0,0);
+  const fog={ax:0,ay:0,bx:0,by:0,br:1},sine='sine.inOut';
+  gsap.to(fog,{ax:NZ*.5,ay:-NZ*.2,duration:46,ease:sine,yoyo:true,repeat:-1});
+  gsap.to(fog,{bx:-NZ*.35,by:NZ*.25,duration:33,ease:sine,yoyo:true,repeat:-1});
+  gsap.to(fog,{br:.8,duration:6.5,ease:sine,yoyo:true,repeat:-1});
+  let fc,fx;
+  // sprites: disco (diâmetro s) por categoria
+  const spr={},OP={c13:.3,c22:.3,br:.3,nu:.3};function sprites(s){spr.s=s;for(const k in RES){const o=new OffscreenCanvas(s*2,s*2),x=o.getContext('2d');x.fillStyle=RES[k];x.beginPath();x.arc(s,s,s/2,0,7);x.fill();spr[k]=o}}
+  const bigPct=x=>pct(x,2);
+  const ease=t=>t<0?0:t>1?1:1-Math.pow(1-t,2),dark=[];let hov=-1,last=0;
+  let mx=0,my=0;cv.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;const b=cv.getBoundingClientRect(),x=((e.clientX-b.left)*dim.dpr/dim.p-1)|0,y=((e.clientY-b.top)*dim.dpr/dim.p-1)|0;hov=x>=0&&y>=0&&x<G&&y<H?cell[y*G+x]:-1});
+  cv.addEventListener('mouseleave',()=>hov=-1);
+  // ao vivo (?ao-vivo): lê data/live.json do coletor a cada 10s; sem isso, simulação com base em 2022
+  const LIVE_URL='data/live.json';
+  const LIVE=new URLSearchParams(location.search).has('ao-vivo'),byId=new Map(RG.map(r=>[r.id,r]));let LT={e:1,cnt:0,p:0,c13:0,c22:0,br:0,nu:0,ab:0};
+  const liveT=()=>LT;
+  async function poll(){try{const j=await (await fetch(LIVE_URL+'?'+Date.now())).json(),b=j.br;
+      for(const r of RG){const d=j.ri[r.id];if(!d)continue;r.p=d.te?d.est/d.te:0;r.v={c13:d.c13,c22:d.c22,br:d.br,nu:d.nu,ab:d.ab}}
+      $('upd').textContent=`Atualizado às ${(j.tse||'').split(' ')[1]||'—'} · TSE`+(Date.now()-new Date(j.gerado)>180e3?' · coletor parado?':'');
+      LT={e:b.te,p:b.te?b.est/b.te:0,c13:b.c13,c22:b.c22,br:b.br,nu:b.nu,ab:b.ab}}catch(e){console.warn('live.json',e)}}
+  $('upd').textContent='Simulação · base 2º turno 2022';
+  if(LIVE){document.body.classList.add('live');$('upd').textContent='Conectando…';RG.forEach(r=>{r.p=0;r.v={c13:0,c22:0,br:0,nu:0,ab:0}});poll();setInterval(poll,10e3)}
+  // fogos (gsap): vitória de Lula → foguetes sobem do sul do mapa e explodem em vermelho sobre centróides de regiões sorteadas
+  const fxc=$('fx'),fc2=fxc.getContext('2d'),parts=[];let won=false,gen=0;
+  // vitória nacional → contínuo enquanto Lula estiver eleito: a cada 0,12–0,45s um foguete sai de uma região onde Lula venceu,
+  // sobe pouco (6–12 células) e estoura com partículas pequenas
+  function fireworks(g){if(!won||g!==gen)return;const ws=RG.filter(r=>r.v.c13>r.v.c22);
+    if(ws.length)launch(ws[R()*ws.length|0],0,'c13');
+    gsap.delayedCall(.12+R()*.33,fireworks,[g])}
+  // votos por foguete por faixa de eleitorado apurado; tamanho ∝ √(votos/200 mil) (área ∝ votos)
+  const FOGOS=p=>p<.4?2e6:p<.7?6e5:p<.9?2e5:5e4,acc={c13:0,c22:0};
+  // um foguete a partir da região r
+  const PAL={c13:{t:'#ffb3b8',g:'#ff2b38',h:['#ff2b38','#ff5a63','#ff8a90','#ffd0d3']},c22:{t:'#b8d0ff',g:'#4f8bff',h:['#4f8bff','#7aa8ff','#a8c6ff','#dbe7ff']}};
+  function launch(r,delay=0,k='c13',sc=1){const x0=r.cx+(R()-.5)*4,o={x:x0,y:r.cy,a:0,trail:true,k},top=r.cy-(6+R()*6)*Math.sqrt(sc);parts.push(o);
+    gsap.to(o,{a:1,duration:.01,delay});
+    gsap.to(o,{x:x0+(R()-.5)*3,y:top,duration:.55+R()*.35,delay,ease:'power2.out',onComplete(){parts.splice(parts.indexOf(o),1);burst(o.x,top,k,sc)}})}
+  function burst(x,y,k,sc=1){const n=Math.round(36*Math.sqrt(sc)),sp=(4+R()*4)*sc,hue=PAL[k].h;
+    for(let i=0;i<n;i++){const t=i/n*Math.PI*2+R()*.2,v=sp*Math.sqrt(R()),o={x,y,g:0,a:1,k,c:hue[i%4],sz:(.22+R()*.25)*Math.sqrt(sc)};parts.push(o);
+      gsap.to(o,{x:x+Math.cos(t)*v,y:y+Math.sin(t)*v,duration:1.3,ease:'expo.out'});
+      gsap.to(o,{g:3,duration:1.5,ease:'power2.in'}); // gravidade
+      gsap.to(o,{a:0,duration:1.5,ease:'power2.in',onComplete(){parts.splice(parts.indexOf(o),1)}})}}
+  function drawFx(){if(fxc.width!==cv.width||fxc.height!==cv.height){fxc.width=cv.width;fxc.height=cv.height;fxc.style.width=cv.style.width;fxc.style.height=cv.style.height}
+    const p=dim.p;fc2.clearRect(0,0,fxc.width,fxc.height);if(!parts.length)return;fc2.globalCompositeOperation='lighter';
+    for(const o of parts){if(o.a<=0)continue;fc2.globalAlpha=o.a;fc2.fillStyle=o.trail?PAL[o.k].t:o.c;const r=(o.trail?.35:o.sz)*p;
+      fc2.shadowColor=PAL[o.k].g;fc2.shadowBlur=p*1.5;fc2.beginPath();fc2.arc((o.x+1)*p,(o.y+(o.g||0)+1)*p,r,0,7);fc2.fill()}
+    fc2.shadowBlur=0;fc2.globalAlpha=1;fc2.globalCompositeOperation='source-over'}
+  // relógio: 90s de apuração + 6s de pausa; o slider define o % apurado (t por busca binária) e pausa
+  const sl=$('sl'),pl=$('pl'),DUR=90;let tt=0,play=true,jump=false;
+  const setPlay=v=>{play=v;pl.textContent=v?'❚❚':'▶';pl.ariaLabel=v?'Pausar':'Reproduzir'};
+  pl.onclick=()=>{if(!play&&tt>=1)tt=0;setPlay(!play)};
+  sl.oninput=()=>{setPlay(false);const g=sl.value/100;let a=0,b=1;for(let i=0;i<30;i++){const m=(a+b)/2;simulate(m).p<g?a=m:b=m}tt=b;jump=true};
+  (function f(now){const dt=Math.min(.1,(now-last)/1000);if(play){tt+=dt/DUR;if(tt>1+6/DUR){tt=0;jump=true}}
+    const T=LIVE?liveT():simulate(Math.min(1,tt)),stamp=jump||now-last>600?now-1e6:now,skip=jump||now-last>600;last=now;jump=false;dark.length=0;if(play)sl.value=T.p*100;
+    for(const r of RG){const k=Math.round(r.n*r.p);if(k<r.k)r.ts.fill(0);for(let j=r.k;j<k;j++)if(!r.ts[j])r.ts[j]=stamp;r.k=k;
+      const sum=K.reduce((t,c)=>t+r.v[c],0)||1;let acc=0;const bd=K.map(c=>Math.round(acc+=r.v[c]/sum*k));
+      for(let n=0,ci=0;n<k;n++){while(ci<5&&n>=bd[ci])ci++;const t=ease((now-r.ts[n])/4000);if(t<=0)continue;const[x,y]=r.pts[n],cat=K[ci];
+        if(cat==='c13'||cat==='c22')dark.push(x,y,t,cat)}}
+    for(const r of RG)r.fog+=(1-r.p-r.fog)*.04;
+    const md=mi.data;md.fill(0);
+    for(let y=0;y<H;y++)for(let x=0;x<G;x++){const c=cell[y*G+x];if(c<0)continue;md[((y+1)*W+x+1)*4+3]=255*RG[c].fog}
+    mc.putImageData(mi,0,0);
+    const c=cv.getContext('2d'),{p,dpr}=dim;c.clearRect(0,0,cv.width,cv.height);
+    // camada de névoa em meia resolução: ruído A + ruído B, recortado pela máscara borrada
+    const fw=cv.width>>1,fh=cv.height>>1;if(!fc||fc.width!==fw||fc.height!==fh){fc=new OffscreenCanvas(fw,fh);fx=fc.getContext('2d')}
+    const ps=p/2,pat=fx.createPattern(nz,'repeat');fx.globalCompositeOperation='source-over';fx.clearRect(0,0,fw,fh);
+    fx.globalAlpha=.85;pat.setTransform(new DOMMatrix().translate(fog.ax*ps,fog.ay*ps).scale(ps*.9));fx.fillStyle=pat;fx.fillRect(0,0,fw,fh);
+    fx.globalAlpha=.6;pat.setTransform(new DOMMatrix().translate(fog.bx*ps,fog.by*ps).scale(ps*.5));fx.fillStyle=pat;fx.fillRect(0,0,fw,fh);
+    fx.globalAlpha=1;fx.fillStyle=`rgba(${MIST},.22)`;fx.fillRect(0,0,fw,fh);
+    fx.globalCompositeOperation='destination-in';fx.filter=`blur(${ps*3}px)`;fx.drawImage(mist,0,0,fw,fh);fx.filter='none';
+    c.globalAlpha=fog.br;c.filter=`blur(${p*1.2}px)`;c.drawImage(fc,0,0,cv.width,cv.height);c.filter='none';
+    // só 13 e 22 no mapa (brancos, nulos e abstenção não aparecem); círculos somados ('lighter') a 30%; onde se sobrepõem, a luz acumula
+    const s=Math.max(dpr*1.2,p*.6);if(spr.s!==s)sprites(s);c.globalCompositeOperation='lighter';
+    for(let i=0;i<dark.length;i+=4){c.globalAlpha=dark[i+2]*OP[dark[i+3]];c.drawImage(spr[dark[i+3]],(dark[i]+1)*p-s,(dark[i+1]+1)*p-s)}
+    c.globalCompositeOperation='source-over';c.globalAlpha=1;c.lineJoin='round';
+    c.lineWidth=dpr*.5;c.strokeStyle='rgba(207,217,255,.06)';c.stroke(pr);
+    c.lineWidth=dpr;c.strokeStyle='rgba(207,217,255,.2)';c.stroke(pu);
+    if(hov>=0){const r=RG[hov];c.lineWidth=dpr*1.5;c.strokeStyle='rgba(255,255,255,.7)';c.stroke(path(r.poly,p));
+      const vv=r.v.c13+r.v.c22,a=vv?r.v.c13/vv:0,tt=$('tt');
+      tt.innerHTML=`<h3>${r.nome} · ${r.uf.toUpperCase()}</h3><div class="s">${pct(r.p,0)} do eleitorado apurado · ${fmt(r.e)} eleitores</div>`+(vv?`<div class="l"><span>Lula</span>${pct(a,2)}</div><div class="l"><span>Bolsonaro</span>${pct(1-a,2)}</div><div class="b"><i style="width:${a*100}%;background:#ff2b38"></i><i style="flex:1;background:#4f8bff"></i></div>`:'<div class="l"><span>Sem votos apurados</span></div>');
+      const w=tt.offsetWidth,h=tt.offsetHeight;tt.style.left=Math.min(mx+16,innerWidth-w-8)+'px';tt.style.top=(my+16+h>innerHeight?my-h-12:my+16)+'px';tt.style.opacity=1}else $('tt').style.opacity=0;
+    $('p22').innerHTML=bigPct(T.c22/T.e);$('p13').innerHTML=bigPct(T.c13/T.e);
+    // teto: votos atuais + todo o eleitorado ainda não apurado
+    const rest=T.e*(1-T.p);const vv=T.c13+T.c22;$('w13').textContent=vv?pct(T.c13/vv,2)+' dos válidos':'';$('w22').textContent=vv?pct(T.c22/vv,2)+' dos válidos':'';$('v22').textContent=fmt(T.c22);$('v13').textContent=fmt(T.c13);$('apu').textContent=pct(T.p,0);
+    // definição matemática: o líder vence quando sua vantagem supera todo o eleitorado ainda não apurado
+    const lead=T.c13-T.c22,falta=(rest-Math.abs(lead))/T.e,lid=lead>0?'Lula':'Bolsonaro',dc=$('dec');
+    // um foguete a cada FOGOS(p) votos novos de cada candidato, saindo de região sorteada pelo peso dos votos novos;
+    // saltos (slider, aba oculta) só sincronizam; no máximo 30 foguetes por quadro
+    // com eleito definido, o perdedor não solta fogos
+    const loser=T.p>0&&falta<=0?(lead>0?'c22':'c13'):null;
+    for(const k of ['c13','c22']){let sum=0;const dv=RG.map(r=>{const d=Math.max(0,r.v[k]-(r['l'+k]??r.v[k]));r['l'+k]=r.v[k];sum+=d;return d});
+      const N=FOGOS(T.p),sc=Math.sqrt(N/2e5);if(skip||k===loser){acc[k]=0;continue}acc[k]+=sum;let n=Math.min(30,acc[k]/N|0);acc[k]-=n*N;
+      while(n-->0){let t=R()*sum,i=0;while(i<RG.length-1&&(t-=dv[i])>0)i++;launch(RG[i],R()*.8,k,sc)}}
+    if(T.p>0&&falta<=0&&lead>0&&!won){won=true;fireworks(++gen)}if(T.p===0||falta>0)won=false;
+    if(T.p>0&&falta<=0){dc.className='ok '+(lead>0?'n13':'n22');dc.innerHTML=`<b>${lid} eleito</b>vantagem maior que todo o eleitorado restante`}
+    else{dc.className='';dc.innerHTML=`<b>${T.p>0?pct(falta,1):'—'}</b>restante para definição`}
+    // barra = votos 13 + votos 22 + eleitorado não apurado; o corte (meio) é a vantagem matemática: quem cruzar vence
+    const S=T.c13+T.c22+rest||1;$('b13').style.width=T.c13/S*100+'%';$('b22').style.width=T.c22/S*100+'%';
+
+    drawFx();requestAnimationFrame(f)})(performance.now());
+});
+</script></body></html>

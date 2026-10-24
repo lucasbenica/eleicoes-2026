@@ -1,0 +1,1 @@
+{ "name": "eleicoes-2026", "private": true, "type": "module", "scripts": { "coletor": "node --env-file-if-exists=.env.local coletor.mjs" }, "dependencies": { "@vercel/blob": "^1.1.1" } }

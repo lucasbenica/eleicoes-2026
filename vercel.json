@@ -1,0 +1,1 @@
+{ "rewrites": [{ "source": "/", "destination": "/j-regioes-169.html" }], "buildCommand": "", "outputDirectory": "." }
