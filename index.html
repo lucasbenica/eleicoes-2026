@@ -1,7 +1,7 @@
 <!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" href="favicon.svg" type="image/svg+xml"><title>Apuração das Eleições 2026</title><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-:root{--sans:'Inter',system-ui,sans-serif;--ap:64px}
+:root{--sans:'Inter',system-ui,sans-serif;--ap:92px}
 body{margin:0;background:radial-gradient(120% 80% at 50% 30%,#0e1424 0%,#05060b 70%) fixed;min-height:100vh;color:#dfe6f5;font:13px/1.3 var(--sans)}
 /* vertical (padrão): cabeçalho compacto, Lula à esquerda e Bolsonaro à direita; mapa ocupa o resto da tela */
 body{box-sizing:border-box;padding-top:var(--ap);height:100vh;height:100dvh;overflow:hidden}
@@ -30,8 +30,8 @@ h1{margin:0;font:700 1em/1 var(--sans);letter-spacing:.3em;text-transform:upperc
 canvas{display:block}
 /* faixa fixa no topo da tela: barra de ponta a ponta; abaixo, % apurado sob o corte (50%), status ao vivo à esquerda e botões à direita */
 #ap{position:fixed;top:0;left:0;right:0;z-index:7;font-size:13px;display:flex;flex-direction:column}
-#ap .bar{height:14px;margin:0;border-radius:0}#ap #b13,#ap #b22{border-radius:0}
-#ap .r{position:relative;display:flex;justify-content:center;align-items:flex-start;padding:.5em 1.2em 0;height:calc(var(--ap) - 14px);box-sizing:border-box}
+#ap .bar{height:42px;margin:0;border-radius:0}#ap #b13,#ap #b22{border-radius:0}
+#ap .r{position:relative;display:flex;justify-content:center;align-items:flex-start;padding:.5em 1.2em 0;height:calc(var(--ap) - 42px);box-sizing:border-box}
 #ap .meta{gap:.25em}#apu{font-size:1.6em}
 #ap .bt{position:absolute;right:1.2em;top:.55em;display:flex;gap:.6em}
 #upd{position:absolute;left:1.2em;top:.9em;display:none;font:600 .8em/1.3 var(--sans);letter-spacing:.08em;opacity:.4}.live #upd{opacity:.75;display:inline-flex;align-items:center;gap:.5em}
