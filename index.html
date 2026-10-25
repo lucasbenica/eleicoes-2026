@@ -66,7 +66,7 @@ canvas{display:block}
 @media (max-width:899px){#mw{margin-bottom:5.4em}.n13 .num{justify-content:flex-start}.row{flex-direction:row;justify-content:space-between;gap:1em}.n13,.n13 em{text-align:left}.n22,.n22 em{text-align:right}
   aside{gap:.8em;padding:1em 0 .2em}h1{text-align:center;font-size:.9em}.c b{font-size:3.6em}.c em{font-size:1.4em;margin-bottom:.15em}.c small{margin-top:.4em;font-size:.9em}.bar{height:1em;margin-bottom:.5em}.meta span+span{display:none}
   #apu{font-size:1.5em}.ctl button{width:1.9em;height:1.9em;font-size:.9em}.ctl input{height:1.8em}}
-#som,#mn{width:2.6em;height:2.6em;border:0;border-radius:50%;background:#ffffff14;color:#dfe6f5;cursor:pointer;display:grid;place-items:center;font-size:13px}#som:hover,#mn:hover{background:#ffffff26}#som svg{width:1.3em;height:1.3em}#mn{width:auto;padding:0 1.1em;border-radius:1.3em;font:600 .95em/1 var(--sans);letter-spacing:.04em}
+#som,#mn,#nt{width:2.6em;height:2.6em;border:0;border-radius:50%;background:#ffffff14;color:#dfe6f5;cursor:pointer;display:grid;place-items:center;font-size:13px}#som:hover,#mn:hover,#nt:hover{background:#ffffff26}#nt[hidden]{display:none}#nt[aria-pressed=true]{background:#ff2b3840;color:#ff8a90}#som svg,#nt svg{width:1.3em;height:1.3em}#mn{width:auto;padding:0 1.1em;border-radius:1.3em;font:600 .95em/1 var(--sans);letter-spacing:.04em}
 #ts{position:fixed;right:1.6em;bottom:1.6em;z-index:5;display:flex;flex-direction:column;align-items:flex-end;gap:.45em;pointer-events:none;font-size:13px}
 #ts div{display:flex;align-items:center;gap:.55em;padding:.5em .85em .5em .7em;border-radius:.75em;background:linear-gradient(#161c2cf2,#0c101cf2);box-shadow:0 0 0 1px #ffffff14,inset 0 1px 0 #ffffff12,0 8px 20px -8px #000a;font:500 .9em/1.2 var(--sans);font-variant-numeric:tabular-nums;white-space:nowrap;transform-origin:100% 50%}
 #ts b{font-weight:650;letter-spacing:-.01em}#ts em{font-style:normal;font-weight:650;color:#fff}
@@ -110,7 +110,7 @@ canvas{display:block}
   #ap .meta{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);gap:3px}#apu{font:800 22px/1 var(--sans)}
   .meta span,#abn .t,#dec,#abn .tl{font:600 10px/1 var(--sans);letter-spacing:.12em;text-transform:uppercase}.meta span{opacity:.55}
   #ap .bt{position:static;display:contents}#on{order:-1;font:500 12px/1 var(--sans);letter-spacing:0;opacity:.6}#mn{margin-left:auto}
-  #mn,#som{height:34px;font-size:12px}#som{width:34px}#mn{padding:0 .9em}
+  #mn,#som,#nt{height:34px;font-size:12px}#som,#nt{width:34px}#mn{padding:0 .9em}
   .row{align-items:flex-end}aside{padding-top:20px}
   .c em{font:700 17px/1 var(--sans);margin-bottom:6px}
   .c b{font-size:clamp(40px,13vw,60px);letter-spacing:-.04em}
@@ -149,7 +149,7 @@ canvas{display:block}
 <div id="dec"></div>
 <div class="ctl"><button id="pl" aria-label="Pausar">❚❚</button><input id="sl" type="range" min="0" max="100" step="0.1" value="0" aria-label="% apurado"><button id="sp" title="Velocidade da reprodução (1× = tempo real, ~3 h de apuração)">120×</button></div>
 </aside><div id="mw"><canvas id="m"></canvas><canvas id="fx"></canvas><div id="abn" hidden><span class="t">Abstenção</span><div class="n"><b id="abv"></b><span id="abd"></span></div><div class="sc"><i class="tk"></i><i class="d1" id="abp"></i><span class="tl">1º turno</span><span class="lb"><span id="abl0">15%</span><span id="abl1">25%</span></span></div></div></div><div id="tt"></div></div><div id="ts"></div>
-<div id="ap"><div class="bar"><i id="b13"></i><i id="b22"></i><span class="cut" title="Corte: quem passar daqui vence matematicamente"></span></div><div class="r"><span id="upd"></span><div class="meta"><b id="apu"></b><span>Eleitorado apurado</span></div><div class="bt"><span id="on" hidden></span><button id="mn" aria-label="Variação da apuração em relação ao histórico" aria-expanded="false" aria-controls="dr">Variação</button><button id="som" aria-label="Som"></button></div></div></div>
+<div id="ap"><div class="bar"><i id="b13"></i><i id="b22"></i><span class="cut" title="Corte: quem passar daqui vence matematicamente"></span></div><div class="r"><span id="upd"></span><div class="meta"><b id="apu"></b><span>Eleitorado apurado</span></div><div class="bt"><span id="on" hidden></span><button id="mn" aria-label="Variação da apuração em relação ao histórico" aria-expanded="false" aria-controls="dr">Variação</button><button id="nt" aria-label="Notificações" aria-pressed="false" hidden></button><button id="som" aria-label="Som"></button></div></div></div>
 <aside id="dr" role="dialog" aria-label="Comparar com"><div class="dh"><button id="dx" aria-label="Fechar">✕</button></div>
 <div class="seg"><button id="s22" aria-pressed="false"><small class="cm">Comparar com</small>2022<small>2º turno</small></button><button id="s26" aria-pressed="true"><small class="cm">Comparar com</small>2026<small>1º turno</small></button></div>
 <div class="hl" id="hl"></div>
@@ -249,6 +249,23 @@ Promise.all(['data/ri.json?v=2','data/uf.json?v=2','data/hist.json?v=1'].map(u=>
     else if(late)[c,t,h]=['err',`Dados atrasados · última totalização ${tseT} (TSE)`,`A coleta de dados está sem atualizar há ${cl} min. Os números exibidos são da última totalização recebida.`];
     else[c,t,h]=['ok',`Ao vivo · totalização TSE ${tseT} · verificado há ${ago<60?ago+'s':Math.floor(ago/60)+' min'}`,`Dados em dia: a última atualização do TSE foi coletada há ${Math.max(0,Math.round(Date.now()/1e3-lastS))}s. A página verifica novidades a cada minuto.`];
     u.className=c;u.textContent=t;u.dataset.tip=h}
+  // notificações push: o coletor envia a apuração a cada avanço relevante e o aviso de virada; inscrição salva em /api/push
+  const VAPID='BJsQtgbAdy3bgsKt6XhG1KT1ddytvKHujzcjdvjCxYRhjpaToIXqzE8opEy1cv-KpGrZRbW3kJUrhyqNmPJbPNg';
+  if(LIVE&&location.hostname.endsWith('vercel.app')&&'serviceWorker'in navigator&&'PushManager'in window&&'Notification'in window){
+    const bt=$('nt'),BELL={on:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg>',
+      off:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.3 6.3A6 6 0 0 0 6 8c0 7-3 9-3 9h14M18 14c.3.8.7 1.4 1 1.8M8.7 3.3A6 6 0 0 1 18 8M10.3 21a1.9 1.9 0 0 0 3.4 0M2 2l20 20"/></svg>'};
+    const ui=on=>{bt.innerHTML=on?BELL.on:BELL.off;bt.setAttribute('aria-pressed',on);bt.title=on?'Notificações ativadas (clique para desativar)':'Receber a apuração e o aviso de virada por notificação';bt.hidden=false};
+    const key=b64=>Uint8Array.from(atob((b64+'='.repeat((4-b64.length%4)%4)).replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0));
+    const api=(m,sub)=>fetch('/api/push',{method:m,headers:{'Content-Type':'application/json'},body:JSON.stringify(sub)}).then(r=>{if(!r.ok)throw 0});
+    navigator.serviceWorker.register('/sw.js').then(async reg=>{
+      let sub=await reg.pushManager.getSubscription();ui(!!sub&&Notification.permission==='granted');
+      if(sub&&Notification.permission==='granted')api('POST',sub.toJSON()).catch(()=>{}); // reenvia: garante que a inscrição está no servidor
+      bt.onclick=async()=>{bt.disabled=true;try{
+        if(sub){await api('DELETE',{endpoint:sub.endpoint}).catch(()=>{});await sub.unsubscribe();sub=null;ui(false)}
+        else{if(await Notification.requestPermission()!=='granted'){ui(false);bt.title='Permissão negada: libere as notificações nas configurações do navegador';return}
+          sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:key(VAPID)});await api('POST',sub.toJSON());ui(true)}
+      }catch(e){if(sub&&!sub.endpoint)sub=null;ui(!!sub)}finally{bt.disabled=false}}
+    }).catch(()=>{})}
   // online agora: heartbeat a cada 60 s com a aba visível (/api/online, só existe em produção); some se a API não responder
   let sid;try{sid=sessionStorage.sid||(sessionStorage.sid=Math.random().toString(36).slice(2))}catch(e){sid=Math.random().toString(36).slice(2)}
   async function ping(){try{const r=await fetch('/api/online?id='+sid,{cache:'no-store'});if(!r.ok)throw 0;const{n}=await r.json();$('on').hidden=false;$('on').textContent=n.toLocaleString('pt-BR')+' online'}catch(e){$('on').hidden=true}}

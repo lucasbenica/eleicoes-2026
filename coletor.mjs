@@ -10,6 +10,7 @@
 // Uso: node coletor.mjs [eleição=6258] [--once]
 import fs from 'fs';
 import { put } from '@vercel/blob';
+import webpush from 'web-push';
 import { fileURLToPath } from 'url';
 const ELE = process.argv.find(a => /^\d+$/.test(a)) || '6258', ONCE = process.argv.includes('--once');
 const RPS = +(process.env.RPS || 40), CONC = +(process.env.CONC || 8), CICLO = +(process.env.CICLO_MS || 60e3), PAUSA_BLOQ = 11 * 60e3;
@@ -46,6 +47,39 @@ function extrai(j) { // EA20 (-u.json): presidente = carg[0]
   const c = j.carg?.find(c => c.cd == '1') || j.carg?.[0], v = { c13: 0, c22: 0 };
   for (const a of c?.agr || []) for (const p of a.par || []) for (const k of p.cand || []) if (k.n == '13' || k.n == '22') v['c' + k.n] += num(k.vap);
   return { te: num(j.e?.te), est: num(j.e?.est), pst: num(j.s?.pst) / 100, ab: num(j.e?.a), br: num(j.v?.vb), nu: num(j.v?.tvn), ...v, dt: j.dt, ht: j.ht, and: j.and };
+}
+
+// notificações push (Web Push): inscrições no Upstash Redis (hash "push", gravadas por /api/push); estado em "notif"
+//  - virada: Lula passa à frente → "LULA VIROU, PORRA!!!" na hora (se já houve notificação antes, com Bolsonaro na frente)
+//  - atualização relevante: apuração avançou NOTIF_PASSO pontos percentuais (padrão 1) desde a última notificação
+const RURL = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL, RTOK = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+const PUSH = !!(RURL && RTOK && process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY), PASSO = +(process.env.NOTIF_PASSO || 1) / 100;
+if (PUSH) webpush.setVapidDetails(process.env.VAPID_SUBJECT || 'mailto:contato@example.com', process.env.VAPID_PUBLIC_KEY, process.env.VAPID_PRIVATE_KEY);
+else log('push desligado (faltam UPSTASH_REDIS_REST_URL/TOKEN ou VAPID_*)');
+const redis = async cmd => (await (await fetch(RURL, { method: 'POST', headers: { Authorization: 'Bearer ' + RTOK }, body: JSON.stringify(cmd) })).json()).result;
+const pc = x => (x * 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%';
+let estadoNotif = null;
+async function notifica(b) {
+  if (!PUSH) return;
+  const [te, est, c13, c22] = b, p = te ? est / te : 0, vv = c13 + c22;
+  if (p < 0.005 || !vv) return;
+  const lider = c13 > c22 ? 13 : c22 > c13 ? 22 : 0;
+  estadoNotif ??= JSON.parse((await redis(['GET', 'notif'])) || 'null');
+  const ant = estadoNotif, flip = ant && ant.lider === 22 && lider === 13;
+  if (ant && !flip && p < ant.p + PASSO - 1e-9 && lider === ant.lider) return;
+  estadoNotif = { p, lider }; await redis(['SET', 'notif', JSON.stringify(estadoNotif)]);
+  const corpo = `Lula ${pc(c13 / vv)} · Bolsonaro ${pc(c22 / vv)} dos válidos — ${pc(p)} apurado`;
+  const msg = JSON.stringify(flip ? { t: 'LULA VIROU, PORRA!!!', b: corpo, tag: 'virada', flip: 1 }
+    : { t: lider === 13 ? 'Lula na frente' : lider === 22 ? (ant && ant.lider === 13 ? 'Bolsonaro virou' : 'Bolsonaro na frente') : 'Empate', b: corpo, tag: 'apuracao' });
+  const subs = Object.values((await redis(['HGETALL', 'push'])) ?? {}); // REST devolve [campo, valor, …]
+  const lista = Array.isArray(subs) ? subs.filter((_, i) => i % 2) : [];
+  let ok = 0;
+  await Promise.all(lista.map(async raw => {
+    const sub = JSON.parse(raw);
+    try { await webpush.sendNotification(sub, msg, { TTL: 600, urgency: flip ? 'high' : 'normal' }); ok++ }
+    catch (e) { if (e.statusCode === 404 || e.statusCode === 410) await redis(['HDEL', 'push', sub.endpoint]).catch(() => {}); }
+  }));
+  log(`push: ${flip ? 'VIRADA · ' : ''}${ok}/${lista.length} enviados`);
 }
 
 // histórico dos últimos snapshots: o delta cobre quem perdeu até JANELA-1 ciclos
@@ -99,6 +133,7 @@ async function ciclo() {
   const live = { s, a: base ? base.s : s, t: B.ht, b, d }, full = { s, t: B.ht, b, r: cur.flat() };
   await publica('live.json', live);
   if (mudouFull) { await publica('full.json', full); ultimoFull = cur; }
+  await notifica(b).catch(e => log('push:', e.message));
   log(`ok · ${(B.pst * 100).toFixed(2)}% seções · ${mun.size} municípios · ${nReq} req no total`);
 }
 
