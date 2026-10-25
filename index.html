@@ -119,7 +119,12 @@ canvas{display:block}
   .n13 b{color:#ff4a55;text-shadow:none}.n13 em{color:#ffb3b8}.n22 b{color:#5b8cff}.n22 em{color:#b3c8ff}
   .l13 .n13 b{text-shadow:0 0 22px #ff2b3880}.l22 .n22 b{text-shadow:0 0 22px #3d7bff80}
   .pre #dec{display:none}
-  #abn{right:16px;top:12px}#dec{left:16px}
+  #abn{right:12px;top:10px;font-size:12px;min-width:9.6em;padding:9px 11px 6px;pointer-events:auto;cursor:pointer;transition:transform .25s,box-shadow .25s}
+  #abn .t{font-size:10px;opacity:.65}#abn b{font-size:21px}#abd{font-size:11px}#abn .tl{font-size:9px;opacity:.75}#abn .lb{font-size:9px;opacity:.55}
+  #abn::after{content:"";position:absolute;right:8px;top:8px;width:7px;height:7px;border:solid #dfe6f5;border-width:1.5px 1.5px 0 0;opacity:.45}
+  #abn.big{position:fixed;left:50%;top:50%;right:auto;z-index:20;transform:translate(-50%,-50%);width:min(80vw,15em);font-size:22px;padding:.9em 1em .7em;background:#0b0f1a;box-shadow:0 0 0 1px #ffffff1f,0 0 0 100vmax #000000b8}
+  #abn.big::after{content:"✕";border:0;width:auto;height:auto;right:.7em;top:.6em;font:600 13px/1 var(--sans);opacity:.6}
+  #abn.big .t{font-size:.6em}#abn.big b{font-size:2em}#abn.big #abd{font-size:.65em}#abn.big .tl{font-size:.5em}#abn.big .lb{font-size:.45em}#abn.big .sc{height:1.5em}#abn.big .tl{top:1.25em}#abn.big .lb{top:2.8em}#dec{left:16px}
   #mw{overflow:hidden;touch-action:none}
   .pre #upd{bottom:1.4em;font-size:13px;opacity:.9}
 }
@@ -276,7 +281,7 @@ Promise.all(['data/ri.json?v=2','data/uf.json?v=2','data/hist.json?v=1'].map(u=>
     const apply=()=>{const w=mw.clientWidth,h=mw.clientHeight;tx=Math.min(0,Math.max(w*(1-z),tx));ty=Math.min(0,Math.max(h*(1-z),ty));
       for(const c of cs){c.style.transformOrigin=`${-c.offsetLeft}px ${-c.offsetTop}px`;c.style.transform=z===1?'':`translate(${tx}px,${ty}px) scale(${z})`}};
     const mid=()=>{const[a,b]=[...pt.values()],o=mw.getBoundingClientRect();return{x:(a.x+b.x)/2-o.left,y:(a.y+b.y)/2-o.top,d:Math.hypot(a.x-b.x,a.y-b.y)}};
-    mw.addEventListener('pointerdown',e=>{pt.set(e.pointerId,{x:e.clientX,y:e.clientY});mw.setPointerCapture(e.pointerId);
+    mw.addEventListener('pointerdown',e=>{if(e.target.closest('#abn'))return;pt.set(e.pointerId,{x:e.clientX,y:e.clientY});mw.setPointerCapture(e.pointerId);
       if(pt.size===1){const n=Date.now();if(n-lastTap<300){z=1;tx=ty=0;apply()}lastTap=n}g=null});
     mw.addEventListener('pointermove',e=>{const q=pt.get(e.pointerId);if(!q)return;
       if(pt.size===1){if(z>1){tx+=e.clientX-q.x;ty+=e.clientY-q.y;q.x=e.clientX;q.y=e.clientY;apply()}return}
@@ -286,6 +291,9 @@ Promise.all(['data/ri.json?v=2','data/uf.json?v=2','data/hist.json?v=1'].map(u=>
     // iOS ignora user-scalable=no: bloqueia o gesto de zoom da página fora do mapa
     for(const ev of['gesturestart','gesturechange'])document.addEventListener(ev,e=>e.preventDefault());
     document.addEventListener('touchmove',e=>{if(e.touches.length>1&&!mw.contains(e.target))e.preventDefault()},{passive:false});
+    // abstenção: toque amplia o cartão em um popup; qualquer toque fecha
+    const ab=$('abn');ab.setAttribute('role','button');ab.setAttribute('aria-label','Ampliar abstenção');
+    document.addEventListener('click',e=>{const big=ab.classList.contains('big');if(!big&&ab.contains(e.target))ab.classList.add('big');else if(big)ab.classList.remove('big')});
     addEventListener('resize',()=>{z=1;tx=ty=0;apply()})}
   ['pointerdown','keydown','touchstart'].forEach(e=>addEventListener(e,()=>{if(somOn)unlock()},{once:true,passive:true}));
   // no máximo 8 sons simultâneos (rajadas de até 30 foguetes por quadro)
