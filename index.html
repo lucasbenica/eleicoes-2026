@@ -142,13 +142,18 @@ canvas{display:block}
   .dr{height:44px}.nm{font-weight:600}
   .vr{font-size:13px}
 }
+#npo{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:16px;background:#05060bb3;font-size:14px;transition:opacity .25s}#npo[hidden]{display:none}#npo.out{opacity:0}
+#npo section{width:min(24em,100%);padding:1.6em;border-radius:1.2em;background:linear-gradient(#161c2c,#0c101c);box-shadow:0 0 0 1px #ffffff1a,inset 0 1px 0 #ffffff14,0 24px 48px -12px #000c;display:flex;flex-direction:column;gap:1em;transition:transform .3s cubic-bezier(.2,.8,.2,1)}#npo.out section{transform:translateY(10px)}
+#npo .ic{display:grid;place-items:center;width:3.2em;height:3.2em;border-radius:50%;background:#ff2b3830;color:#ff8a90}#npo .ic svg{width:1.35em;height:1.35em}
+#npo h3{margin:0;font:800 1.45em/1.2 var(--sans);letter-spacing:-.02em;text-wrap:balance}#npo p{margin:0;color:#dfe6f5a6}#npo small{color:#dfe6f5a6;font-size:.8em}
+#npo .ac{display:flex;flex-direction:column;gap:.4em;margin-top:.4em}#npo button{font:700 .9em/1 var(--sans);border:0;border-radius:.8em;padding:.95em 1.2em;cursor:pointer;color:#fff;background:#ff2b38}#npo button:hover{background:#ff4752}#npo button.no{background:transparent;color:#dfe6f5a6}#npo button.no:hover{color:#dfe6f5;background:#ffffff12}#npo button:focus-visible{outline:2px solid #7aa8ff;outline-offset:2px}
 </style><script>window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments)};</script><script defer src="/_vercel/insights/script.js"></script>
 </head><body>
 <div id="st"><aside><h1>2º turno · Presidente</h1>
 <div class="row"><div class="c n13"><em>Lula</em><div class="num"><b id="p13"></b></div><span class="vv" id="w13"></span><small><span id="v13"></span> votos</small></div><div class="c r n22"><em>Bolsonaro</em><div class="num"><b id="p22"></b></div><span class="vv" id="w22"></span><small><span id="v22"></span> votos</small></div></div>
 <div id="dec"></div>
 <div class="ctl"><button id="pl" aria-label="Pausar">❚❚</button><input id="sl" type="range" min="0" max="100" step="0.1" value="0" aria-label="% apurado"><button id="sp" title="Velocidade da reprodução (1× = tempo real, ~3 h de apuração)">120×</button></div>
-</aside><div id="mw"><canvas id="m"></canvas><canvas id="fx"></canvas><div id="abn" hidden><span class="t">Abstenção</span><div class="n"><b id="abv"></b><span id="abd"></span></div><div class="sc"><i class="tk"></i><i class="d1" id="abp"></i><span class="tl">1º turno</span><span class="lb"><span id="abl0">15%</span><span id="abl1">25%</span></span></div></div></div><div id="tt"></div></div><div id="ts"></div>
+</aside><div id="mw"><canvas id="m"></canvas><canvas id="fx"></canvas><div id="abn" hidden><span class="t">Abstenção</span><div class="n"><b id="abv"></b><span id="abd"></span></div><div class="sc"><i class="tk"></i><i class="d1" id="abp"></i><span class="tl">1º turno</span><span class="lb"><span id="abl0">15%</span><span id="abl1">25%</span></span></div></div></div><div id="tt"></div></div><div id="ts"></div><div id="npo" hidden><section role="dialog" aria-modal="true" aria-labelledby="npt"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg></span><h3 id="npt">Acompanhe a apuração sem ficar na tela</h3><p>Enviamos o placar a cada avanço de 1 ponto percentual. Se Lula passar à frente, você é avisado na hora.</p><div class="ac"><button id="npy">Ativar notificações</button><button class="no" id="npn">Agora não</button></div><small>Você pode desativar quando quiser pelo sino no topo.</small></section></div>
 <div id="ap"><div class="bar"><i id="b13"></i><i id="b22"></i><span class="cut" title="Corte: quem passar daqui vence matematicamente"></span></div><div class="r"><span id="upd"></span><div class="meta"><b id="apu"></b><span>Eleitorado apurado</span></div><div class="bt"><span id="on" hidden></span><button id="mn" aria-label="Variação da apuração em relação ao histórico" aria-expanded="false" aria-controls="dr">Variação</button><button id="nt" aria-label="Notificações" aria-pressed="false" hidden></button><button id="som" aria-label="Som"></button></div></div></div>
 <aside id="dr" role="dialog" aria-label="Comparar com"><div class="dh"><button id="dx" aria-label="Fechar">✕</button></div>
 <div class="seg"><button id="s22" aria-pressed="false"><small class="cm">Comparar com</small>2022<small>2º turno</small></button><button id="s26" aria-pressed="true"><small class="cm">Comparar com</small>2026<small>1º turno</small></button></div>
@@ -260,11 +265,18 @@ Promise.all(['data/ri.json?v=2','data/uf.json?v=2','data/hist.json?v=1'].map(u=>
     navigator.serviceWorker.register('/sw.js').then(async reg=>{
       let sub=await reg.pushManager.getSubscription();ui(!!sub&&Notification.permission==='granted');
       if(sub&&Notification.permission==='granted')api('POST',sub.toJSON()).catch(()=>{}); // reenvia: garante que a inscrição está no servidor
+      const on=async()=>{if(await Notification.requestPermission()!=='granted'){ui(false);bt.title='Permissão negada: libere as notificações nas configurações do navegador';return}
+        sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:key(VAPID)});await api('POST',sub.toJSON());ui(true)};
       bt.onclick=async()=>{bt.disabled=true;try{
-        if(sub){await api('DELETE',{endpoint:sub.endpoint}).catch(()=>{});await sub.unsubscribe();sub=null;ui(false)}
-        else{if(await Notification.requestPermission()!=='granted'){ui(false);bt.title='Permissão negada: libere as notificações nas configurações do navegador';return}
-          sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:key(VAPID)});await api('POST',sub.toJSON());ui(true)}
-      }catch(e){if(sub&&!sub.endpoint)sub=null;ui(!!sub)}finally{bt.disabled=false}}
+        if(sub){await api('DELETE',{endpoint:sub.endpoint}).catch(()=>{});await sub.unsubscribe();sub=null;ui(false)}else await on();
+      }catch(e){if(sub&&!sub.endpoint)sub=null;ui(!!sub)}finally{bt.disabled=false}};
+      // popup ao abrir: só se ainda não decidiu (permissão pendente, sem inscrição e sem ter dispensado antes)
+      let no=false;try{no=localStorage.ntNo==='1'}catch(e){}
+      if(!sub&&Notification.permission==='default'&&!no){const po=$('npo'),fecha=()=>{po.classList.add('out');setTimeout(()=>{po.hidden=true;document.removeEventListener('keydown',esc)},250)},
+        esc=e=>{if(e.key==='Escape')$('npn').click()};
+        setTimeout(()=>{po.hidden=false;po.classList.remove('out');$('npy').focus({preventScroll:true});document.addEventListener('keydown',esc)},1200);
+        $('npy').onclick=async()=>{fecha();bt.disabled=true;try{await on()}catch(e){ui(!!sub)}finally{bt.disabled=false}};
+        $('npn').onclick=()=>{try{localStorage.ntNo='1'}catch(e){}fecha()}}
     }).catch(()=>{})}
   // online agora: heartbeat a cada 60 s com a aba visível (/api/online, só existe em produção); some se a API não responder
   let sid;try{sid=sessionStorage.sid||(sessionStorage.sid=Math.random().toString(36).slice(2))}catch(e){sid=Math.random().toString(36).slice(2)}
