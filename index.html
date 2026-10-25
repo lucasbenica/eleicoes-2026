@@ -1,4 +1,4 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <link rel="icon" href="favicon.svg" type="image/svg+xml"><title>Apuração das Eleições 2026</title><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 :root{--sans:'Inter',system-ui,sans-serif;--ap:92px}
@@ -120,6 +120,7 @@ canvas{display:block}
   .l13 .n13 b{text-shadow:0 0 22px #ff2b3880}.l22 .n22 b{text-shadow:0 0 22px #3d7bff80}
   .pre #abn,.pre #dec{display:none}
   #abn{right:16px;top:12px}#dec{left:16px}
+  #mw{overflow:hidden;touch-action:none}
   .pre #upd{bottom:1.4em;font-size:13px;opacity:.9}
 }
 
@@ -220,7 +221,7 @@ Promise.all(['data/ri.json?v=2','data/uf.json?v=2','data/hist.json?v=1'].map(u=>
   const ease=t=>t<0?0:t>1?1:1-Math.pow(1-t,2),dark=[];let hov=-1,last=0;
   // hov é recalculado a cada quadro (pick): com scroll ou mudança de layout o mapa anda sob o cursor parado e o hover antigo ficaria preso noutra região
   let mx=0,my=0,inn=false;cv.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;inn=true});cv.addEventListener('mouseleave',()=>inn=false);
-  const pick=()=>{if(!inn)return-1;const b=cv.getBoundingClientRect(),x=((mx-b.left)*dim.dpr/dim.p-1)|0,y=((my-b.top)*dim.dpr/dim.p-1)|0;return x>=0&&y>=0&&x<G&&y<H?cell[y*G+x]:-1};
+  const pick=()=>{if(!inn)return-1;const b=cv.getBoundingClientRect(),k=cv.width/b.width/dim.p,x=((mx-b.left)*k-1)|0,y=((my-b.top)*k-1)|0;return x>=0&&y>=0&&x<G&&y<H?cell[y*G+x]:-1};
   // ao vivo (?ao-vivo): a cada 60s lê live.json (nacional + regiões alteradas desde o snapshot `a`); full.json só na 1ª carga ou se ficou para trás
   // regiões no formato [apurado/10000, c13, c22] na ordem de ri.json; sem ?ao-vivo, simulação com base em 2022
   const LIVE_BASE=location.hostname.endsWith('vercel.app')?'https://tlnprhxldq2skcrs.public.blob.vercel-storage.com/':'data/';
@@ -270,6 +271,22 @@ Promise.all(['data/ri.json?v=2','data/uf.json?v=2','data/hist.json?v=1'].map(u=>
     off:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="m23 9-6 6M17 9l6 6"/></svg>'};
   const somUI=()=>{$('som').innerHTML=somOn?ICO.on:ICO.off;$('som').setAttribute('aria-pressed',somOn)};somUI();
   $('som').onclick=()=>{somOn=!somOn;try{localStorage.som=somOn?'1':'0'}catch(e){}somUI();if(somOn)unlock()};
+  // celular: pinça/arrasto só no mapa (transform CSS nos dois canvases); a página não amplia. Toque duplo volta ao normal
+  if(MOB){const mw=$('mw'),cs=[cv,$('fx')],pt=new Map();let z=1,tx=0,ty=0,g=null,lastTap=0;
+    const apply=()=>{const w=mw.clientWidth,h=mw.clientHeight;tx=Math.min(0,Math.max(w*(1-z),tx));ty=Math.min(0,Math.max(h*(1-z),ty));
+      for(const c of cs){c.style.transformOrigin=`${-c.offsetLeft}px ${-c.offsetTop}px`;c.style.transform=z===1?'':`translate(${tx}px,${ty}px) scale(${z})`}};
+    const mid=()=>{const[a,b]=[...pt.values()],o=mw.getBoundingClientRect();return{x:(a.x+b.x)/2-o.left,y:(a.y+b.y)/2-o.top,d:Math.hypot(a.x-b.x,a.y-b.y)}};
+    mw.addEventListener('pointerdown',e=>{pt.set(e.pointerId,{x:e.clientX,y:e.clientY});mw.setPointerCapture(e.pointerId);
+      if(pt.size===1){const n=Date.now();if(n-lastTap<300){z=1;tx=ty=0;apply()}lastTap=n}g=null});
+    mw.addEventListener('pointermove',e=>{const q=pt.get(e.pointerId);if(!q)return;
+      if(pt.size===1){if(z>1){tx+=e.clientX-q.x;ty+=e.clientY-q.y;q.x=e.clientX;q.y=e.clientY;apply()}return}
+      q.x=e.clientX;q.y=e.clientY;const m=mid();if(!g){g=m;return}
+      const nz=Math.min(4,Math.max(1,z*m.d/g.d)),f=nz/z;tx=m.x-(g.x-tx)*f;ty=m.y-(g.y-ty)*f;z=nz;g=m;apply()});
+    const up=e=>{pt.delete(e.pointerId);g=null};mw.addEventListener('pointerup',up);mw.addEventListener('pointercancel',up);
+    // iOS ignora user-scalable=no: bloqueia o gesto de zoom da página fora do mapa
+    for(const ev of['gesturestart','gesturechange'])document.addEventListener(ev,e=>e.preventDefault());
+    document.addEventListener('touchmove',e=>{if(e.touches.length>1&&!mw.contains(e.target))e.preventDefault()},{passive:false});
+    addEventListener('resize',()=>{z=1;tx=ty=0;apply()})}
   ['pointerdown','keydown','touchstart'].forEach(e=>addEventListener(e,()=>{if(somOn)unlock()},{once:true,passive:true}));
   // no máximo 8 sons simultâneos (rajadas de até 30 foguetes por quadro)
   function sfx(delay,k){const B=k==='c22'?moos:bufs;if(!somOn||!ac||!B.length||voz>=8)return;const s=ac.createBufferSource();s.buffer=B[R()*B.length|0];s.connect(ac.destination);voz++;s.onended=()=>voz--;s.start(ac.currentTime+delay)}
