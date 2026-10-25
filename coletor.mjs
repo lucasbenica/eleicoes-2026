@@ -12,8 +12,8 @@ import fs from 'fs';
 import { put } from '@vercel/blob';
 import { fileURLToPath } from 'url';
 const ELE = process.argv.find(a => /^\d+$/.test(a)) || '6258', ONCE = process.argv.includes('--once');
-const RPS = +(process.env.RPS || 40), CONC = +(process.env.CONC || 8), CICLO = 60e3, PAUSA_BLOQ = 11 * 60e3;
-const BASE = `https://resultados.tse.jus.br/oficial/ele2026/${ELE}`, E6 = ELE.padStart(6, '0');
+const RPS = +(process.env.RPS || 40), CONC = +(process.env.CONC || 8), CICLO = +(process.env.CICLO_MS || 60e3), PAUSA_BLOQ = 11 * 60e3;
+const BASE = process.env.TSE_BASE || `https://resultados.tse.jus.br/oficial/ele2026/${ELE}`, E6 = ELE.padStart(6, '0');
 const DIR = fileURLToPath(new URL('./data/', import.meta.url)), MUNRI = JSON.parse(fs.readFileSync(new URL('./data/mun-ri.json', import.meta.url)));
 // ordem das regiões = ordem de data/ri.json (o site já tem esse arquivo em cache; o índice substitui o id)
 const RI_IDX = new Map(JSON.parse(fs.readFileSync(new URL('./data/ri.json', import.meta.url))).map((r, i) => [String(r.id), i]));
@@ -67,9 +67,10 @@ async function ciclo() {
   const mudou = new Set();
   await Promise.all(ufs.map(async a => {
     const ab = await get(`${BASE}/dados/${a.cd}/${a.cd}-e${E6}-ab.json`, cache);
-    const itens = ab?.abr?.find?.(x => x.cd?.toLowerCase() === a.cd)?.mu || ab?.abr?.flatMap?.(x => x.mu || []) || [];
+    // EA15: abr = [{ tpabr: 'mun', cdabr: '61000', ht, s, e, … }] (um item por município)
+    const itens = Array.isArray(ab?.abr) ? ab.abr.filter(x => x.cdabr && x.tpabr !== 'uf') : [];
     if (!itens.length) { for (const m of a.mu) mudou.add(a.cd + m.cd.padStart(5, '0')); return; } // formato inesperado: baixa tudo
-    for (const m of itens) { const k = a.cd + String(m.cd).padStart(5, '0'), s = JSON.stringify(m); if (assinatura.get(k) !== s) { assinatura.set(k, s); mudou.add(k) } }
+    for (const m of itens) { const k = a.cd + String(m.cdabr).padStart(5, '0'), s = JSON.stringify(m); if (assinatura.get(k) !== s) { assinatura.set(k, s); mudou.add(k) } }
   }));
   const fila = lista.filter(m => (mudou.has(m.uf + m.cd) || !mun.has(m.ibge)) && !naoExiste.has(m.uf + m.cd));
   log(`ciclo: ${fila.length} municípios a atualizar`);
