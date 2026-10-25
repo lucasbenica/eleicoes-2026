@@ -71,7 +71,9 @@ canvas{display:block}
 @keyframes tsr{from{transform:scale(1);opacity:.8}to{transform:scale(3.4);opacity:0}}
 #ts .c13{color:#ff5a63}#ts .c22{color:#7aa8ff}#ts span{color:#ffffffa6}
 @media (prefers-reduced-motion:reduce){#ts i::after{display:none}}
-@media (max-width:899px){#ts{display:none}#abn{right:.8em;top:.4em;min-width:9em;padding:.6em .8em;font-size:.8em}}
+@media (max-width:899px){#ts{display:none}#abn{right:1.6em;top:1.6em;min-width:9em;padding:.6em .8em;font-size:.8em}
+  :root{--ap:92px}#ap .bar{height:42px}#ap .r{height:calc(var(--ap) - 42px)}h1{display:none}
+  #upd{position:fixed;left:0;right:0;top:auto;bottom:.7em;justify-content:center;text-align:center;font-size:.75em}#dec{bottom:3em}}
 
 /* painel 2022 × 2026 (direita) */
 #dr{position:fixed;top:0;right:0;bottom:0;z-index:9;width:40vw;font:13px/1.3 var(--sans);display:flex;flex-direction:column;background:#07090ff2;backdrop-filter:blur(14px);box-shadow:-1px 0 0 #ffffff1a,-20px 0 50px #0008;transform:translateX(105%);visibility:hidden;transition:transform .3s,visibility 0s .3s}
