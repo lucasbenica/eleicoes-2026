@@ -1,7 +1,7 @@
 // Coletor da apuração (TSE → data/live.json), dentro dos limites da divulgação de resultados 2026.
 // Regras do TSE: máx. 100 req/s por IP; acima disso, bloqueio de 10 min renovado a cada nova tentativa;
 // 404 repetidos também bloqueiam; 304 conta no limite. Por isso:
-//  - teto de RPS req/s (padrão 20 = 20% do limite) com no máx. CONC requisições simultâneas;
+//  - teto de RPS req/s (padrão 40 = 40% do limite) com no máx. CONC requisições simultâneas;
 //  - URLs só a partir do arquivo de configuração (mun-e<ele>-cm.json), código do município com 5 dígitos;
 //  - EA15 (<uf>-e<ele>-ab.json) diz quais municípios mudaram; só esses são baixados;
 //  - If-None-Match/If-Modified-Since em tudo; 404 de município não é refeito no mesmo ciclo;
@@ -11,7 +11,7 @@ import fs from 'fs';
 import { put } from '@vercel/blob';
 import { fileURLToPath } from 'url';
 const ELE = process.argv.find(a => /^\d+$/.test(a)) || '6258', ONCE = process.argv.includes('--once');
-const RPS = +(process.env.RPS || 20), CONC = +(process.env.CONC || 4), CICLO = 60e3, PAUSA_BLOQ = 11 * 60e3;
+const RPS = +(process.env.RPS || 40), CONC = +(process.env.CONC || 8), CICLO = 60e3, PAUSA_BLOQ = 11 * 60e3;
 const BASE = `https://resultados.tse.jus.br/oficial/ele2026/${ELE}`, E6 = ELE.padStart(6, '0');
 const DIR = fileURLToPath(new URL('./data/', import.meta.url)), MUNRI = JSON.parse(fs.readFileSync(new URL('./data/mun-ri.json', import.meta.url)));
 // ordem das regiões = ordem de data/ri.json (o site já tem esse arquivo em cache; o índice substitui o id)

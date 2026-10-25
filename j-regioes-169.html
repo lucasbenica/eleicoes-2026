@@ -24,6 +24,9 @@ h1{margin:0;font:700 1em/1 var(--sans);letter-spacing:.3em;text-transform:upperc
 #b13{left:0;background:#ff2b38}#b22{right:0;background:#4f8bff}
 .cut{position:absolute;left:50%;top:-.35em;bottom:-.35em;width:2px;margin-left:-1px;background:#dfe6f5;border-radius:1px}.bar{overflow:visible}#b13{border-radius:.25em 0 0 .25em}#b22{border-radius:0 .25em .25em 0}
 .meta{display:flex;flex-direction:column;align-items:center;gap:.35em;text-align:center;white-space:nowrap}#apu{font:800 1.9em/1 var(--sans);font-variant-numeric:tabular-nums}.meta #upd{margin-top:.3em;letter-spacing:.08em;text-transform:none;opacity:.4}
+.live .meta #upd{opacity:.75;display:inline-flex;align-items:center;gap:.5em}.live #upd::before{content:'';width:.55em;height:.55em;border-radius:50%;background:#8a93a8}
+#upd.ok::before{background:#3ddc84;animation:pu 2s infinite}#upd.wait::before{background:#dfe6f5;animation:pu 2s infinite}#upd.warn{color:#ffc145}#upd.warn::before{background:#ffc145}#upd.err{color:#ff6b6b;opacity:1}#upd.err::before{background:#ff6b6b}
+@keyframes pu{50%{opacity:.25}}
 .meta span{font:600 .8em/1 var(--sans);letter-spacing:.2em;text-transform:uppercase;opacity:.5}
 canvas{display:block}
 
@@ -109,16 +112,27 @@ Promise.all(['data/ri.json?v=2','data/uf.json?v=2'].map(u=>fetch(u).then(r=>r.js
   // ao vivo (?ao-vivo): a cada 60s lê live.json (nacional + regiões alteradas desde o snapshot `a`); full.json só na 1ª carga ou se ficou para trás
   // regiões no formato [apurado/10000, c13, c22] na ordem de ri.json; sem ?ao-vivo, simulação com base em 2022
   const LIVE_BASE=location.hostname.endsWith('vercel.app')?'https://tlnprhxldq2skcrs.public.blob.vercel-storage.com/':'data/';
-  const LIVE=new URLSearchParams(location.search).has('ao-vivo');let LT={e:1,cnt:0,p:0,c13:0,c22:0,br:0,nu:0,ab:0},seq=0,lastPoll=0;
-  const liveT=()=>LT,get=f=>fetch(LIVE_BASE+f,{cache:'no-cache'}).then(r=>r.json());
+  // em produção (vercel.app) é ao vivo por padrão; ?simulacao força a simulação, ?ao-vivo força o ao vivo fora de produção
+  const Q=new URLSearchParams(location.search),LIVE=Q.has('ao-vivo')||location.hostname.endsWith('vercel.app')&&!Q.has('simulacao');
+  let LT={e:1,cnt:0,p:0,c13:0,c22:0,br:0,nu:0,ab:0},seq=0,lastPoll=0,lastOk=0,lastS=0,tseT='',started=false,fail=0,retry;
+  const liveT=()=>LT,get=f=>fetch(LIVE_BASE+f+'?v='+Math.floor(Date.now()/2e4),{cache:'no-cache'}).then(r=>{if(!r.ok)throw Error('HTTP '+r.status);return r.json()});
   const setR=(i,p,c13,c22)=>{const r=RG[i];if(r){r.p=p/1e4;r.v={c13,c22}}};
-  async function poll(){lastPoll=Date.now();try{const j=await get('live.json');
+  async function poll(){lastPoll=Date.now();clearTimeout(retry);try{const j=await get('live.json');
       if(!seq||seq<j.a){const f=await get('full.json');for(let i=0,x=f.r;i<x.length;i+=3)setR(i/3,x[i],x[i+1],x[i+2])}
       if(j.s!==seq)for(let i=0,x=j.d;i<x.length;i+=4)setR(x[i],x[i+1],x[i+2],x[i+3]);seq=j.s;
       const[te,est,c13,c22,br,nu,ab]=j.b;LT={e:te,p:te?est/te:0,c13,c22,br,nu,ab};
-      $('upd').textContent=`Atualizado às ${j.t||'—'} · TSE`+(Date.now()/1e3-j.s>300?' · coletor parado?':'')}catch(e){console.warn('live',e)}}
+      lastOk=Date.now();lastS=j.s;tseT=(j.t||'').slice(0,5);started=!!j.t||est>0;fail=0}
+    catch(e){fail++;console.warn('live',e);retry=setTimeout(()=>{if(!document.hidden)poll()},15e3)}status()}
+  // indicador: ok = TSE consultado há pouco; wait = antes da 1ª totalização; warn = falha de rede; err = coletor sem publicar há 5 min
+  function status(){const u=$('upd'),ago=Math.round((Date.now()-lastOk)/1e3),late=Date.now()/1e3-lastS>300;let c,t;
+    if(!lastOk)[c,t]=fail?['err','Sem conexão · tentando de novo']:['','Conectando…'];
+    else if(!started)[c,t]=['wait','Aguardando início da apuração · 17h (Brasília)'];
+    else if(fail)[c,t]=['warn',`Reconectando… · dados de ${tseT} (TSE)`];
+    else if(late)[c,t]=['err',`Dados atrasados · última totalização ${tseT} (TSE)`];
+    else[c,t]=['ok',`Ao vivo · totalização TSE ${tseT} · verificado há ${ago<60?ago+'s':Math.floor(ago/60)+' min'}`];
+    u.className=c;u.textContent=t}
   $('upd').textContent='Simulação · base 2º turno 2022';
-  if(LIVE){document.body.classList.add('live');$('upd').textContent='Conectando…';RG.forEach(r=>{r.p=0;r.v={c13:0,c22:0}});poll();
+  if(LIVE){document.body.classList.add('live');RG.forEach(r=>{r.p=0;r.v={c13:0,c22:0}});poll();setInterval(status,1e3);
     // aba oculta não consulta; ao voltar, atualiza na hora se já passou 1 min
     setInterval(()=>{if(!document.hidden)poll()},60e3);document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now()-lastPoll>60e3)poll()})}
   // fogos (gsap): vitória de Lula → foguetes sobem do sul do mapa e explodem em vermelho sobre centróides de regiões sorteadas
