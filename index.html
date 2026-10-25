@@ -384,7 +384,7 @@ Promise.all(['data/ri.json?v=2','data/uf.json?v=2','data/hist.json?v=1'].map(u=>
       while(n-->0){let t=R()*sum,i=0;while(i<RG.length-1&&(t-=dv[i])>0)i++;launch(RG[i],R()*.8,k,sc,N)}}
     if(T.p>0&&falta<=0&&lead>0&&!won){won=true;fireworks(++gen)}if(T.p===0||falta>0)won=false;
     if(T.p>0&&falta<=0){dc.className='ok '+(lead>0?'n13':'n22');dc.innerHTML=`<b>${lid} eleito</b>`}
-    else{dc.className='';dc.innerHTML=`<b>${T.p>0?pct(falta,1):'—'}</b>restante para definição`}
+    else{dc.className='';dc.innerHTML=`<b>${T.p>0?pct(falta,1):'—'}</b>até definição`}
     // barra = votos 13 + votos 22 + eleitorado não apurado; o corte (meio) é a vantagem matemática: quem cruzar vence
     const S=T.c13+T.c22+rest||1;$('b13').style.width=T.c13/S*100+'%';$('b22').style.width=T.c22/S*100+'%';
     lcd=true}
