@@ -4,6 +4,7 @@
 //  - teto de RPS req/s (padrão 40 = 40% do limite) com no máx. CONC requisições simultâneas;
 //  - URLs só a partir do arquivo de configuração (mun-e<ele>-cm.json), código do município com 5 dígitos;
 //  - EA15 (<uf>-e<ele>-ab.json) diz quais municípios mudaram; só esses são baixados;
+//  - Exterior: só o arquivo da UF zz (zz-c0001-e<ele>-u.json), como última região do live/full.json;
 //  - If-None-Match/If-Modified-Since em tudo; 404 de município não é refeito no mesmo ciclo;
 //  - ao primeiro 429/403: para tudo por 11 min, sem nenhuma tentativa no meio (tentar renova o bloqueio).
 // Uso: node coletor.mjs [eleição=6258] [--once]
@@ -16,6 +17,8 @@ const BASE = `https://resultados.tse.jus.br/oficial/ele2026/${ELE}`, E6 = ELE.pa
 const DIR = fileURLToPath(new URL('./data/', import.meta.url)), MUNRI = JSON.parse(fs.readFileSync(new URL('./data/mun-ri.json', import.meta.url)));
 // ordem das regiões = ordem de data/ri.json (o site já tem esse arquivo em cache; o índice substitui o id)
 const RI_IDX = new Map(JSON.parse(fs.readFileSync(new URL('./data/ri.json', import.meta.url))).map((r, i) => [String(r.id), i]));
+// Exterior (zz) = última região, logo depois das de ri.json (o site a monta como bloco de pontos no Atlântico)
+RI_IDX.set('zz', RI_IDX.size);
 const log = (...a) => console.log(new Date().toTimeString().slice(0, 8), ...a);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -54,10 +57,12 @@ async function publica(nome, obj) {
   if (process.env.BLOB_READ_WRITE_TOKEN) await put(nome, txt, { access: 'public', addRandomSuffix: false, allowOverwrite: true, cacheControlMaxAge: 60, contentType: 'application/json' }).catch(e => log('blob:', e.message));
 }
 const cache = new Map(), mun = new Map(), assinatura = new Map(), naoExiste = new Set();
+let exterior = null; // último EA20 do zz (UF Exterior): 1 arquivo por ciclo, sem baixar as ~186 cidades
 async function ciclo() {
   const cfg = await get(`${BASE}/config/mun-e${E6}-cm.json`, cache);
   const ufs = cfg.abr.filter(a => a.cd !== 'zz'), lista = ufs.flatMap(a => a.mu.map(m => ({ uf: a.cd, cd: m.cd.padStart(5, '0'), ibge: m.cdi })));
   const br = await get(`${BASE}/dados/br/br-c0001-e${E6}-u.json`, cache);
+  if (cfg.abr.some(a => a.cd === 'zz')) { const z = await get(`${BASE}/dados/zz/zz-c0001-e${E6}-u.json`, cache); if (z && !z.erro) exterior = extrai(z); }
   // EA15 por UF: decide quais municípios baixar (primeira vez: todos)
   const mudou = new Set();
   await Promise.all(ufs.map(async a => {
@@ -85,6 +90,7 @@ async function ciclo() {
   const B = extrai(br), s = Math.floor(Date.now() / 1000), b = [B.te, B.est, B.c13, B.c22, B.br, B.nu, B.ab];
   const cur = Array.from({ length: RI_IDX.size }, () => [0, 0, 0]);
   for (const [id, r] of Object.entries(ri)) { const i = RI_IDX.get(id); if (i !== undefined) cur[i] = [r.te ? Math.round(r.est / r.te * 1e4) : 0, r.c13, r.c22]; }
+  if (exterior) cur[RI_IDX.get('zz')] = [exterior.te ? Math.round(exterior.est / exterior.te * 1e4) : 0, exterior.c13, exterior.c22];
   const base = hist[0], d = [];
   if (base) cur.forEach((v, i) => { if (v.some((x, k) => x !== base.cur[i][k])) d.push(i, ...v) });
   const mudouFull = !ultimoFull || cur.some((v, i) => v.some((x, k) => x !== ultimoFull[i][k]));

@@ -1,20 +1,20 @@
 <!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" href="favicon.svg" type="image/svg+xml"><title>Apuração das Eleições 2026 · Véu · responsivo</title><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-:root{--sans:'Inter',system-ui,sans-serif}
+:root{--sans:'Inter',system-ui,sans-serif;--ap:64px}
 body{margin:0;background:radial-gradient(120% 80% at 50% 30%,#0e1424 0%,#05060b 70%) fixed;min-height:100vh;color:#dfe6f5;font:13px/1.3 var(--sans)}
 /* vertical (padrão): cabeçalho compacto, Lula à esquerda e Bolsonaro à direita; mapa ocupa o resto da tela */
-body{height:100vh;height:100dvh;overflow:hidden}
+body{box-sizing:border-box;padding-top:var(--ap);height:100vh;height:100dvh;overflow:hidden}
 #st{display:flex;flex-direction:column;height:100%;font-size:clamp(9px,2.6vw,14px)}
 aside{display:flex;flex-direction:column;gap:1.3em;width:calc(100% - 2.4em);margin:0 auto;padding:1.8em 0 .4em}
 #mw{position:relative;flex:1;min-height:0}#mw canvas{position:absolute;inset:0;margin:auto}
 /* horizontal: palco 16:9, placar à esquerda */
 @media (min-width:900px){body{height:100vh;overflow:hidden;display:flex;align-items:center;justify-content:center}
-  #st{width:min(100vw,177.78vh);height:min(56.25vw,100vh);display:grid;grid-template-columns:32% 1fr;font-size:min(1vw,1.78vh)}
-  aside{justify-content:center;width:auto;margin:0;padding:0 2em 0 3.6em}#mw{min-width:0;min-height:0}}
+  #st{width:min(100vw,calc((100vh - var(--ap))*1.7778));height:min(56.25vw,100vh - var(--ap));display:grid;grid-template-columns:32% 1fr;font-size:min(1vw,1.78vh)}
+  aside{justify-content:center;width:auto;margin:0;padding:0 2em 0 3.6em}#mw{min-width:0;min-height:0}h1{display:none}.c em{text-align:right}}
 .ctl{display:flex;align-items:center;gap:1em}
 .ctl button{flex:none;width:2.6em;height:2.6em;border:0;border-radius:50%;background:#ffffff14;color:#dfe6f5;font:700 1em/1 var(--sans);cursor:pointer}.ctl button:hover{background:#ffffff26}
-.ctl input{flex:1;accent-color:#dfe6f5;height:2.6em;margin:0;cursor:pointer}
+.ctl input{flex:1;accent-color:#dfe6f5;height:2.6em;margin:0;cursor:pointer}.ctl #sp{width:auto;min-width:3.6em;padding:0 .7em;border-radius:1.3em;font-size:.85em;font-variant-numeric:tabular-nums;letter-spacing:.02em}
 
 h1{margin:0;font:700 1em/1 var(--sans);letter-spacing:.3em;text-transform:uppercase;opacity:.45;white-space:nowrap}
 .row{display:flex;flex-direction:column;gap:1.8em}
@@ -23,12 +23,29 @@ h1{margin:0;font:700 1em/1 var(--sans);letter-spacing:.3em;text-transform:upperc
 .bar{position:relative;height:2.4em;margin:0 0 .9em;background:#ffffff10;border-radius:.25em;overflow:hidden}.bar>i{position:absolute;top:0;height:100%;transition:width .4s}
 #b13{left:0;background:#ff2b38}#b22{right:0;background:#4f8bff}
 .cut{position:absolute;left:50%;top:-.35em;bottom:-.35em;width:2px;margin-left:-1px;background:#dfe6f5;border-radius:1px}.bar{overflow:visible}#b13{border-radius:.25em 0 0 .25em}#b22{border-radius:0 .25em .25em 0}
-.meta{display:flex;flex-direction:column;align-items:center;gap:.35em;text-align:center;white-space:nowrap}#apu{font:800 1.9em/1 var(--sans);font-variant-numeric:tabular-nums}.meta #upd{margin-top:.3em;letter-spacing:.08em;text-transform:none;opacity:.4}
-.live .meta #upd{opacity:.75;display:inline-flex;align-items:center;gap:.5em}.live #upd::before{content:'';width:.55em;height:.55em;border-radius:50%;background:#8a93a8}
+.meta{display:flex;flex-direction:column;align-items:center;gap:.35em;text-align:center;white-space:nowrap}#apu{font:800 1.9em/1 var(--sans);font-variant-numeric:tabular-nums}.live #upd::before{content:'';width:.55em;height:.55em;border-radius:50%;background:#8a93a8}
 #upd.ok::before{background:#3ddc84;animation:pu 2s infinite}#upd.wait::before{background:#dfe6f5;animation:pu 2s infinite}#upd.warn{color:#ffc145}#upd.warn::before{background:#ffc145}#upd.err{color:#ff6b6b;opacity:1}#upd.err::before{background:#ff6b6b}
 @keyframes pu{50%{opacity:.25}}
 .meta span{font:600 .8em/1 var(--sans);letter-spacing:.2em;text-transform:uppercase;opacity:.5}
 canvas{display:block}
+/* faixa fixa no topo da tela: barra de ponta a ponta; abaixo, % apurado sob o corte (50%), status ao vivo à esquerda e botões à direita */
+#ap{position:fixed;top:0;left:0;right:0;z-index:7;font-size:13px;display:flex;flex-direction:column}
+#ap .bar{height:14px;margin:0;border-radius:0}#ap #b13,#ap #b22{border-radius:0}
+#ap .r{position:relative;display:flex;justify-content:center;align-items:flex-start;padding:.5em 1.2em 0;height:calc(var(--ap) - 14px);box-sizing:border-box}
+#ap .meta{gap:.25em}#apu{font-size:1.6em}
+#ap .bt{position:absolute;right:1.2em;top:.55em;display:flex;gap:.6em}
+#upd{position:absolute;left:1.2em;top:.9em;display:none;font:600 .8em/1.3 var(--sans);letter-spacing:.08em;opacity:.4}.live #upd{opacity:.75;display:inline-flex;align-items:center;gap:.5em}
+/* abstenção nacional × 1º turno 2026: cartão no canto superior direito do mapa */
+#abn{position:absolute;right:1.4em;top:1em;z-index:3;padding:.8em 1em;border-radius:.4em;background:#0b0f1ad9;backdrop-filter:blur(8px);box-shadow:0 0 0 1px #ffffff14;display:flex;flex-direction:column;gap:.35em;min-width:12em;pointer-events:none;font-variant-numeric:tabular-nums}
+#abn .t{font:700 .8em/1 var(--sans);letter-spacing:.2em;text-transform:uppercase;opacity:.5}#abn b{font:800 1.9em/1 var(--sans);letter-spacing:-.02em}
+#abn .n{display:flex;align-items:baseline;justify-content:space-between;gap:1em}#abd{font:700 .85em/1 var(--sans);letter-spacing:.04em}
+/* escala 15%–30%: faixa verde → preto → vermelho centrada no 1º turno (--tk); traço = 1º turno; ponto = agora (verde abaixo, vermelho acima) */
+#abn .sc{position:relative;height:2.4em;margin-top:.3em}#abn .sc::before{content:"";position:absolute;left:0;right:0;top:.5em;height:.45em;border-radius:.25em;background:linear-gradient(90deg,#8fe3b0,#0b0f1a var(--tk),#ff9aa0)}
+#abn .sc i{position:absolute;top:.72em;transform:translate(-50%,-50%)}#abn .tk{left:var(--tk);width:2.5px;height:1.25em;border-radius:1px;background:#dfe6f5}
+#abn .d1{width:.8em;height:.8em;border-radius:50%;background:#dfe6f5;box-shadow:0 0 0 2px #0b0f1a;transition:left .4s}#abn .d1.dn{background:#3ddc84;box-shadow:0 0 0 2px #0b0f1a,0 0 .6em #3ddc8480}#abn .d1.up{background:#ff5a63;box-shadow:0 0 0 2px #0b0f1a,0 0 .6em #ff5a6380}
+#abn .tl{position:absolute;left:var(--tk);top:1.5em;transform:translateX(-50%);font:600 .7em/1 var(--sans);letter-spacing:.08em;white-space:nowrap;opacity:.6}
+#abn .lb{position:absolute;left:0;right:0;top:1.95em;display:flex;justify-content:space-between;font:600 .55em/1 var(--sans);letter-spacing:.06em;opacity:.4}
+.up{color:#ff5a63}.dn{color:#3ddc84}
 
 .num{display:flex;justify-content:flex-end;align-items:baseline;gap:.9em}
 .live .ctl{display:none}
@@ -44,43 +61,90 @@ canvas{display:block}
 @media (max-width:899px){#mw{margin-bottom:5.4em}.n13 .num{justify-content:flex-start}.row{flex-direction:row;justify-content:space-between;gap:1em}.n13,.n13 em{text-align:left}.n22,.n22 em{text-align:right}
   aside{gap:.8em;padding:1em 0 .2em}h1{text-align:center;font-size:.9em}.c b{font-size:3.6em}.c em{font-size:1.4em;margin-bottom:.15em}.c small{margin-top:.4em;font-size:.9em}.bar{height:1em;margin-bottom:.5em}.meta span+span{display:none}
   #apu{font-size:1.5em}.ctl button{width:1.9em;height:1.9em;font-size:.9em}.ctl input{height:1.8em}}
-#som{position:fixed;top:1.2em;right:1.2em;z-index:7;width:2.6em;height:2.6em;border:0;border-radius:50%;background:#ffffff14;color:#dfe6f5;cursor:pointer;display:grid;place-items:center;font-size:13px}#som:hover{background:#ffffff26}#som svg{width:1.3em;height:1.3em}
-#ts{position:fixed;right:1.6em;bottom:1.6em;z-index:5;display:flex;flex-direction:column;align-items:flex-end;gap:.4em;pointer-events:none;font-size:13px}
-#ts div{padding:.45em .75em;border-radius:.4em;background:#0b0f1ad9;backdrop-filter:blur(8px);box-shadow:0 0 0 1px #ffffff14;font:600 .9em/1.2 var(--sans);font-variant-numeric:tabular-nums;white-space:nowrap}#ts b.c13{color:#ff5a63}#ts b.c22{color:#7aa8ff}
-@media (max-width:899px){#ts{bottom:6.4em;right:1em}}
+#som,#mn{width:2.6em;height:2.6em;border:0;border-radius:50%;background:#ffffff14;color:#dfe6f5;cursor:pointer;display:grid;place-items:center;font-size:13px}#som:hover,#mn:hover{background:#ffffff26}#som svg{width:1.3em;height:1.3em}#mn{width:auto;padding:0 1.1em;border-radius:1.3em;font:600 .95em/1 var(--sans);letter-spacing:.04em}
+#ts{position:fixed;right:1.6em;bottom:1.6em;z-index:5;display:flex;flex-direction:column;align-items:flex-end;gap:.45em;pointer-events:none;font-size:13px}
+#ts div{display:flex;align-items:center;gap:.55em;padding:.5em .85em .5em .7em;border-radius:.75em;background:linear-gradient(#161c2cf2,#0c101cf2);box-shadow:0 0 0 1px #ffffff14,inset 0 1px 0 #ffffff12,0 8px 20px -8px #000a;font:500 .9em/1.2 var(--sans);font-variant-numeric:tabular-nums;white-space:nowrap;transform-origin:100% 50%}
+#ts b{font-weight:650;letter-spacing:-.01em}#ts em{font-style:normal;font-weight:650;color:#fff}
+#ts i{position:relative;width:.5em;height:.5em;border-radius:50%;background:currentColor;box-shadow:0 0 .7em currentColor}
+#ts i::after{content:"";position:absolute;inset:0;border-radius:50%;border:1.5px solid currentColor;animation:tsr 1s cubic-bezier(.2,.7,.3,1) .1s both}
+@keyframes tsr{from{transform:scale(1);opacity:.8}to{transform:scale(3.4);opacity:0}}
+#ts .c13{color:#ff5a63}#ts .c22{color:#7aa8ff}#ts span{color:#ffffffa6}
+@media (prefers-reduced-motion:reduce){#ts i::after{display:none}}
+@media (max-width:899px){#ts{display:none}#abn{right:.8em;top:.4em;min-width:9em;padding:.6em .8em;font-size:.8em}}
+
+/* painel 2022 × 2026 (direita) */
+#dr{position:fixed;top:0;right:0;bottom:0;z-index:9;width:40vw;font:13px/1.3 var(--sans);display:flex;flex-direction:column;background:#07090ff2;backdrop-filter:blur(14px);box-shadow:-1px 0 0 #ffffff1a,-20px 0 50px #0008;transform:translateX(105%);visibility:hidden;transition:transform .3s,visibility 0s .3s}
+#dr.on{transform:none;visibility:visible;transition:transform .3s}
+.dh{display:flex;justify-content:flex-end;align-items:center;padding:.8em 1.2em 0}
+.dh button{width:2em;height:2em;border:0;border-radius:50%;background:#ffffff14;color:#dfe6f5;font:700 1em/1 var(--sans);cursor:pointer}.dh button:hover{background:#ffffff26}
+.seg{display:flex;gap:.25em;margin:.5em 1.2em 0;padding:.25em;border-radius:.5em;background:#ffffff10}
+.seg button{flex:1;border:0;border-radius:.35em;padding:.45em;background:none;color:#dfe6f5a0;font:600 1em var(--sans);cursor:pointer}.seg button small.cm{font:700 .62em var(--sans);letter-spacing:.14em;text-transform:uppercase;opacity:.65;margin-bottom:.2em}.seg button small{display:block;font:400 .85em var(--sans);opacity:.8}.seg button[aria-pressed=true]{background:#dfe6f5;color:#0b0f1a}
+.hl{margin:.5em 1.2em .5em;font:700 1.35em/1.25 var(--sans);text-wrap:balance}.hl em{font-style:normal;color:#ff5a63}.hl u{text-decoration:none;color:#7aa8ff}
+#drr{flex:1;overflow:auto;padding-bottom:1em;scrollbar-width:thin;scrollbar-color:#ffffff2e transparent}#drr:hover{scrollbar-color:#ffffff59 transparent}
+#drr::-webkit-scrollbar{width:8px}#drr::-webkit-scrollbar-track{background:transparent}#drr::-webkit-scrollbar-thumb{background:#ffffff2e;border-radius:8px;border:2px solid transparent;background-clip:padding-box}#drr::-webkit-scrollbar-thumb:hover{background-color:#ffffff59}
+.dr,.dk{display:grid;grid-template-columns:9.5em 1fr 6em;align-items:center;gap:.7em;padding:0 1.2em}
+.dk{position:sticky;top:0;z-index:4;height:2.4em;background:#07090f;font:700 1em var(--sans);color:#dfe6f5a0}.dk span,.dk em{font-size:.8em;letter-spacing:.1em}.dk div{position:relative;display:flex;justify-content:space-between}.dk .b{margin-right:-.1em}.dk em{position:absolute;left:50%;transform:translateX(-50%);font-style:normal}.dk .a{color:#ff2b38}.dk .b{color:#4f8bff}.dk>span:last-child{text-align:right}
+.dr{height:2.2em;border-top:1px solid #ffffff14}.nm{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-weight:600}
+.tk{position:relative;height:100%}.tk::before{content:'';position:absolute;left:0;right:0;top:50%;height:1px;background:#ffffff26}.tk::after{content:'';position:absolute;left:50%;top:50%;height:.9em;width:1px;margin-top:-.45em;background:#ffffff40}
+.tk i{position:absolute;top:50%;border-radius:50%;box-sizing:border-box;transform:translate(-50%,-50%);transition:left .5s,opacity .3s}
+.tk .d0{width:.55em;height:.55em;background:#dfe6f5;z-index:2}.tk .d1{width:.55em;height:.55em;background:#8a93a8;z-index:3;opacity:0}
+.tk .ln{height:3px;border-radius:2px;transform:translateY(-50%);background:#8a93a8;transition:left .5s,width .5s,opacity .3s;opacity:0}
+.vr.lo{font-weight:500;font-size:.85em;opacity:.7}.tk .c13{background:#ff2b38}.tk .c22{background:#4f8bff}
+.vr{text-align:right;font-weight:700;font-variant-numeric:tabular-nums;color:#dfe6f5a0}.vr.c13{color:#ff5a63}.vr.c22{color:#7aa8ff}
+.dg{margin:.8em 1.2em 0;font-size:.85em;line-height:1.5;opacity:.5}
+@media (max-aspect-ratio:1/1){#dr{width:100vw}}
+@media (max-width:520px){#dr{width:100vw}.dr,.dk{grid-template-columns:7em 1fr 4.8em;font-size:11px;gap:.6em}}
 </style><script>window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments)};</script><script defer src="/_vercel/insights/script.js"></script>
 </head><body>
 <div id="st"><aside><h1>2º turno · Presidente</h1>
 <div class="row"><div class="c n13"><em>Lula</em><div class="num"><b id="p13"></b></div><span class="vv" id="w13"></span><small><span id="v13"></span> votos</small></div><div class="c r n22"><em>Bolsonaro</em><div class="num"><b id="p22"></b></div><span class="vv" id="w22"></span><small><span id="v22"></span> votos</small></div></div>
-<div><div class="bar"><i id="b13"></i><i id="b22"></i><span class="cut" title="Corte: quem passar daqui vence matematicamente"></span></div>
-<div class="meta"><b id="apu"></b><span>Eleitorado apurado</span><span id="upd"></span></div></div>
 <div id="dec"></div>
-<div class="ctl"><button id="pl" aria-label="Pausar">❚❚</button><input id="sl" type="range" min="0" max="100" step="0.1" value="0" aria-label="% apurado"></div>
-</aside><div id="mw"><canvas id="m"></canvas><canvas id="fx"></canvas></div><div id="tt"></div></div><button id="som" aria-label="Som"></button><div id="ts"></div>
+<div class="ctl"><button id="pl" aria-label="Pausar">❚❚</button><input id="sl" type="range" min="0" max="100" step="0.1" value="0" aria-label="% apurado"><button id="sp" title="Velocidade da reprodução (1× = tempo real, ~3 h de apuração)">120×</button></div>
+</aside><div id="mw"><canvas id="m"></canvas><canvas id="fx"></canvas><div id="abn" hidden><span class="t">Abstenção</span><div class="n"><b id="abv"></b><span id="abd"></span></div><div class="sc"><i class="tk"></i><i class="d1" id="abp"></i><span class="tl">1º turno</span><span class="lb"><span id="abl0">15%</span><span id="abl1">25%</span></span></div></div></div><div id="tt"></div></div><div id="ts"></div>
+<div id="ap"><div class="bar"><i id="b13"></i><i id="b22"></i><span class="cut" title="Corte: quem passar daqui vence matematicamente"></span></div><div class="r"><span id="upd"></span><div class="meta"><b id="apu"></b><span>Eleitorado apurado</span></div><div class="bt"><button id="mn" aria-label="Variação da apuração em relação ao histórico" aria-expanded="false" aria-controls="dr">Variação</button><button id="som" aria-label="Som"></button></div></div></div>
+<aside id="dr" role="dialog" aria-label="Comparar com"><div class="dh"><button id="dx" aria-label="Fechar">✕</button></div>
+<div class="seg"><button id="s22" aria-pressed="false"><small class="cm">Comparar com</small>2022<small>2º turno</small></button><button id="s26" aria-pressed="true"><small class="cm">Comparar com</small>2026<small>1º turno</small></button></div>
+<div class="hl" id="hl"></div>
+<div id="drr"><div class="dk"><span></span><div><span class="a">LULA</span><em>50%</em><span class="b">BOLSONARO</span></div><span>VARIAÇÃO</span></div></div></aside>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script><script src="core.js?v=1"></script><script>
 // Véu por região imediata: 510 regiões do IBGE, cada uma com seu eleitorado e seus votos (2º turno 2022 como base da simulação).
 // Cada ponto ≈ VPD eleitores e pertence a uma região; acende com o progresso dela e ganha a cor pela proporção de votos dela.
 const $=id=>document.getElementById(id),cv=$('m'),G=300;
 const COS=Math.cos(15*Math.PI/180),P=([x,y])=>[x*COS,-y],hex=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
 const MIST=hex('#cfd9ff'),RES={c22:'#2e8bff',c13:'#ff3344',br:'#4a4e5c',nu:'#262933'},K=['c22','c13','br','nu','ab'];
-Promise.all(['data/ri.json?v=2','data/uf.json?v=2'].map(u=>fetch(u).then(r=>r.json()))).then(([RG,UFG])=>{
+Promise.all(['data/ri.json?v=2','data/uf.json?v=2','data/hist.json?v=1'].map(u=>fetch(u).then(r=>r.json()))).then(([RG,UFG,HIST])=>{
   // projeção e raster: cada célula guarda o índice da região
   RG.forEach(r=>r.poly=r.poly.map(s=>s.map(P)));const ufp=Object.values(UFG).flat().map(s=>s.map(P));
   let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;for(const r of RG)for(const s of r.poly)for(const[x,y]of s){x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y)}
   const k=G/(x1-x0),H=Math.ceil((y1-y0)*k),tx=([x,y])=>[(x-x0)*k,(y-y0)*k];
   RG.forEach(r=>r.poly=r.poly.map(s=>s.map(tx)));const ufs=ufp.map(s=>s.map(tx));
   const oc=new OffscreenCanvas(G,H),o=oc.getContext('2d');
-  RG.forEach((r,i)=>{o.fillStyle=`rgb(${(i+1)>>8},${(i+1)&255},0)`;o.beginPath();for(const s of r.poly){s.forEach(([x,y],j)=>o[j?'lineTo':'moveTo'](x,y));o.closePath()}o.fill()});
+  const pa=RG.map((r,i)=>{const p=new Path2D();for(const s of r.poly){s.forEach(([x,y],j)=>p[j?'lineTo':'moveTo'](x,y));p.closePath()}o.fillStyle=`rgb(${(i+1)>>8},${(i+1)&255},${(i+1)*151+89&255})`;o.fill(p);return p});
   const d=o.getImageData(0,0,G,H).data,cell=new Int16Array(G*H).fill(-1),cnt=RG.map(()=>0);
-  for(let q=0;q<G*H;q++)if(d[q*4+3]>250&&d[q*4+2]===0){const i=(d[q*4]<<8|d[q*4+1])-1;if(i>=0&&i<RG.length){cell[q]=i;cnt[i]++}}
+  // azul = checksum do índice; pixel de borda (cor ≠ de algum vizinho) ainda confere a geometria, pois a mistura do antialiasing pode bater o checksum por acaso. Rejeitados herdam um vizinho válido
+  const px=q=>d[q*4]<<16|d[q*4+1]<<8|d[q*4+2],edge=q=>{const v=px(q),x=q%G;return x>0&&px(q-1)!==v||x<G-1&&px(q+1)!==v||q>=G&&px(q-G)!==v||q<G*H-G&&px(q+G)!==v},
+    inP=(i,q)=>{const x=q%G+.5,y=(q/G|0)+.5;return[[0,0],[-1,0],[1,0],[0,-1],[0,1]].some(([a,b])=>o.isPointInPath(pa[i],x+a,y+b))};
+  const amb=[];for(let q=0;q<G*H;q++)if(d[q*4+3]>250){const i=(d[q*4]<<8|d[q*4+1])-1;if(i>=0&&i<RG.length&&d[q*4+2]===((i+1)*151+89&255)&&(!edge(q)||inP(i,q))){cell[q]=i;cnt[i]++}else amb.push(q)}
+  for(let k=0;k<3;k++)for(const q of amb)if(cell[q]<0){const x=q%G,n=x>0&&cell[q-1]>=0?cell[q-1]:x<G-1&&cell[q+1]>=0?cell[q+1]:q>=G&&cell[q-G]>=0?cell[q-G]:q<G*H-G&&cell[q+G]>=0?cell[q+G]:-1;if(n>=0){cell[q]=n;cnt[n]++}}
+  // Exterior (ZZ): última "região" (mesmo índice do live/full.json), um bloco de pontos fora do território, à esquerda do Sul/Centro-Oeste (lado do Paraguai), no passo médio do mapa.
+  // O retângulo vira células do raster (névoa, hover e tooltip como nas outras regiões). Base da simulação: 2º turno 2022 (total nacional − soma das regiões:
+  // 152.905 × 145.264, p/ 695.578 eleitores) na escala do eleitorado de 2026 (TSE: 916.683); brancos e nulos pela taxa nacional de 2022.
+  const XE=916683,XP=Math.sqrt(cnt.reduce((a,b)=>a+b,0)/RG.reduce((a,r)=>a+Math.max(1,Math.round(r.e/VPD)),0)),XN=Math.max(1,Math.round(XE/VPD)),XC=Math.max(4,Math.round(Math.sqrt(XN*1.4))),XR=Math.ceil(XN/XC),
+    XFW=Math.max(34,XC+9)*XP,XFH=(XR+11.5)*XP,XX=G*.122-XFW/2,XY=H*.731-XFH/2,XK=XE/695578,x13=Math.round(152905*XK),x22=Math.round(145264*XK),xb=Math.round((x13+x22)*.0149),xn=Math.round((x13+x22)*.0332),
+    ext={id:'zz',nome:'Exterior',uf:'zz',ext:true,e:XE,c13:x13,c22:x22,br:xb,nu:xn,ab:XE-x13-x22-xb-xn,fr:[XX,XY,XFW,XFH,XP],c0:[XX+XFW/2,XY+(6.5+XR/2)*XP],
+      poly:[[[XX,XY],[XX+XFW,XY],[XX+XFW,XY+XFH],[XX,XY+XFH]]],
+      dots:Array.from({length:XN},(_,n)=>[XX+(XFW-(XC+.5)*XP)/2+(n%XC+.5)*XP+((n/XC|0)%2?XP/2:0),XY+6.5*XP+((n/XC|0)+.5)*XP])};
+  RG.push(ext);
+  for(let y=Math.max(0,Math.floor(XY));y<Math.min(H,Math.ceil(XY+XFH));y++)for(let x=Math.max(0,Math.floor(XX));x<Math.min(G,Math.ceil(XX+XFW));x++)cell[y*G+x]=RG.length-1;
   // pontos: grade escalonada por região com passo sqrt(área/n); região sem célula → pontos ao redor do centróide
   const R=rnd(11);let N=0;
   RG.forEach((r,i)=>{r.n=Math.max(1,Math.round(r.e/VPD));N+=r.n;const pts=[];
     if(cnt[i]){const pitch=Math.sqrt(cnt[i]/r.n);for(let y=pitch/2,row=0;y<H;y+=pitch,row++)for(let x=pitch/2+(row%2?pitch/2:0);x<G;x+=pitch)if(cell[(y|0)*G+(x|0)]===i)pts.push([x,y])}
+    if(r.dots)pts.push(...r.dots);
     const[cx,cy]=r.poly[0].reduce((a,p)=>[a[0]+p[0]/r.poly[0].length,a[1]+p[1]/r.poly[0].length],[0,0]);
     while(pts.length<r.n){const a=R()*7,m=Math.sqrt(R())*Math.sqrt(r.n)*.25;pts.push([cx+Math.cos(a)*m,cy+Math.sin(a)*m])}
     for(let j=pts.length-1;j>0;j--){const t=R()*(j+1)|0;[pts[j],pts[t]]=[pts[t],pts[j]]}
-    r.pts=pts.slice(0,r.n);r.ts=new Float64Array(r.n);r.k=0;r.cx=cx;r.cy=cy});
+    r.pts=pts.slice(0,r.n);r.ts=new Float64Array(r.n);r.k=0;r.nb=0;r.ck=-1;r.fq=-1;r.bb=r.pts.reduce((b,[x,y])=>[Math.min(b[0],x),Math.min(b[1],y),Math.max(b[2],x),Math.max(b[3],y)],[1e9,1e9,-1e9,-1e9]);r.cx=r.c0?r.c0[0]:cx;r.cy=r.c0?r.c0[1]:cy});
   // simulação: atraso por UF + ruído por região; capitais (região mais populosa da UF) um pouco mais rápidas
   const ufOff={},big={};RG.forEach(r=>{ufOff[r.uf]??=R()*.22;if(!big[r.uf]||r.e>big[r.uf].e)big[r.uf]=r});
   RG.forEach(r=>{r.off=Math.max(0,ufOff[r.uf]+(R()-.5)*.18-(big[r.uf]===r?.08:0));r.spd=1.2+R()*.9;r.v={};r.p=0});
@@ -89,7 +153,7 @@ Promise.all(['data/ri.json?v=2','data/uf.json?v=2'].map(u=>fetch(u).then(r=>r.js
   // contorno: UF forte, região fraca (Path2D refeito no resize)
   let dim,pr,pu;const path=(rings,p)=>{const h=new Path2D();for(const s of rings){s.forEach(([x,y],j)=>h[j?'lineTo':'moveTo']((x+1)*p,(y+1)*p));h.closePath()}return h};
   function fit(){const dpr=devicePixelRatio||1,box=$('mw'),u=Math.min(box.clientWidth/(G+2),box.clientHeight*.96/(H+2)),p=u*dpr;cv.width=Math.round((G+2)*p);cv.height=Math.round((H+2)*p);cv.style.width=cv.width/dpr+'px';cv.style.height=cv.height/dpr+'px';dim={p,dpr};pr=path(RG.flatMap(r=>r.poly),p);pu=path(ufs,p)}
-  fit();new ResizeObserver(fit).observe($('mw'));
+  let resized=true;const refit=()=>{fit();resized=true;for(const r of RG){r.sc=null;r.nb=0}};refit();new ResizeObserver(refit).observe($('mw'));
   // névoa: máscara por região (1-p, suavizada) × textura de ruído tileável em duas camadas que derivam (gsap)
   const W=G+2,mist=new OffscreenCanvas(W,H+2),mc=mist.getContext('2d'),mi=mc.createImageData(W,H+2);RG.forEach(r=>r.fog=1);
   const NZ=256,nz=new OffscreenCanvas(NZ,NZ),nd=nz.getContext('2d').createImageData(NZ,NZ),NR=rnd(5),lat=[4,8,16,32].map(n=>({n,v:Float32Array.from({length:n*n},NR)}));
@@ -98,6 +162,9 @@ Promise.all(['data/ri.json?v=2','data/uf.json?v=2'].map(u=>fetch(u).then(r=>r.js
       v+=a*((L[j*n+i]*(1-u)+L[j*n+I]*u)*(1-w)+(L[J*n+i]*(1-u)+L[J*n+I]*u)*w);t+=a;a*=.55}
     v=Math.max(0,Math.min(1,(v/t-.28)/.6));const q=(y*NZ+x)*4;nd.data[q]=MIST[0];nd.data[q+1]=MIST[1];nd.data[q+2]=MIST[2];nd.data[q+3]=255*v}
   nz.getContext('2d').putImageData(nd,0,0);
+  // offsets (canal alfa) das células de cada região na máscara: a névoa só reescreve as regiões cujo valor (0–255) mudou
+  const cellsOf=RG.map(()=>[]);for(let y=0;y<H;y++)for(let x=0;x<G;x++){const i=cell[y*G+x];if(i>=0)cellsOf[i].push(((y+1)*W+x+1)*4+3)}
+  const CO=cellsOf.map(a=>Int32Array.from(a));let mb=null,mbx=null;
   const fog={ax:0,ay:0,bx:0,by:0,br:1},sine='sine.inOut';
   gsap.to(fog,{ax:NZ*.5,ay:-NZ*.2,duration:46,ease:sine,yoyo:true,repeat:-1});
   gsap.to(fog,{bx:-NZ*.35,by:NZ*.25,duration:33,ease:sine,yoyo:true,repeat:-1});
@@ -107,18 +174,19 @@ Promise.all(['data/ri.json?v=2','data/uf.json?v=2'].map(u=>fetch(u).then(r=>r.js
   const spr={},OP={c13:.8,c22:.8,br:.8,nu:.8};function sprites(s){spr.s=s;for(const k in RES){const o=new OffscreenCanvas(s*2,s*2),x=o.getContext('2d');x.fillStyle=RES[k];x.beginPath();x.arc(s,s,s/2,0,7);x.fill();spr[k]=o}}
   const bigPct=x=>pct(x,2);
   const ease=t=>t<0?0:t>1?1:1-Math.pow(1-t,2),dark=[];let hov=-1,last=0;
-  let mx=0,my=0;cv.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;const b=cv.getBoundingClientRect(),x=((e.clientX-b.left)*dim.dpr/dim.p-1)|0,y=((e.clientY-b.top)*dim.dpr/dim.p-1)|0;hov=x>=0&&y>=0&&x<G&&y<H?cell[y*G+x]:-1});
-  cv.addEventListener('mouseleave',()=>hov=-1);
+  // hov é recalculado a cada quadro (pick): com scroll ou mudança de layout o mapa anda sob o cursor parado e o hover antigo ficaria preso noutra região
+  let mx=0,my=0,inn=false;cv.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;inn=true});cv.addEventListener('mouseleave',()=>inn=false);
+  const pick=()=>{if(!inn)return-1;const b=cv.getBoundingClientRect(),x=((mx-b.left)*dim.dpr/dim.p-1)|0,y=((my-b.top)*dim.dpr/dim.p-1)|0;return x>=0&&y>=0&&x<G&&y<H?cell[y*G+x]:-1};
   // ao vivo (?ao-vivo): a cada 60s lê live.json (nacional + regiões alteradas desde o snapshot `a`); full.json só na 1ª carga ou se ficou para trás
   // regiões no formato [apurado/10000, c13, c22] na ordem de ri.json; sem ?ao-vivo, simulação com base em 2022
   const LIVE_BASE=location.hostname.endsWith('vercel.app')?'https://tlnprhxldq2skcrs.public.blob.vercel-storage.com/':'data/';
   // em produção (vercel.app) é ao vivo por padrão; ?simulacao força a simulação, ?ao-vivo força o ao vivo fora de produção
   const Q=new URLSearchParams(location.search),LIVE=Q.has('ao-vivo')||location.hostname.endsWith('vercel.app')&&!Q.has('simulacao');
-  let LT={e:1,cnt:0,p:0,c13:0,c22:0,br:0,nu:0,ab:0},seq=0,lastPoll=0,lastOk=0,lastS=0,tseT='',started=false,fail=0,retry;
+  let sync=false,LT={e:1,cnt:0,p:0,c13:0,c22:0,br:0,nu:0,ab:0},seq=0,lastPoll=0,lastOk=0,lastS=0,tseT='',started=false,fail=0,retry;
   const liveT=()=>LT,get=f=>fetch(LIVE_BASE+f+'?v='+Math.floor(Date.now()/2e4),{cache:'no-cache'}).then(r=>{if(!r.ok)throw Error('HTTP '+r.status);return r.json()});
-  const setR=(i,p,c13,c22)=>{const r=RG[i];if(r){r.p=p/1e4;r.v={c13,c22}}};
+  const setR=(i,p,c13,c22)=>{const r=RG[i];if(r){r.lp=p/1e4;r.lv={c13,c22,br:0,nu:0,ab:0}}};
   async function poll(){lastPoll=Date.now();clearTimeout(retry);try{const j=await get('live.json');
-      if(!seq||seq<j.a){const f=await get('full.json');for(let i=0,x=f.r;i<x.length;i+=3)setR(i/3,x[i],x[i+1],x[i+2])}
+      if(!seq||seq<j.a){const f=await get('full.json');for(let i=0,x=f.r;i<x.length;i+=3)setR(i/3,x[i],x[i+1],x[i+2]);sync=true}
       if(j.s!==seq)for(let i=0,x=j.d;i<x.length;i+=4)setR(x[i],x[i+1],x[i+2],x[i+3]);seq=j.s;
       const[te,est,c13,c22,br,nu,ab]=j.b;LT={e:te,p:te?est/te:0,c13,c22,br,nu,ab};
       lastOk=Date.now();lastS=j.s;tseT=(j.t||'').slice(0,5);started=!!j.t||est>0;fail=0}
@@ -131,8 +199,7 @@ Promise.all(['data/ri.json?v=2','data/uf.json?v=2'].map(u=>fetch(u).then(r=>r.js
     else if(late)[c,t]=['err',`Dados atrasados · última totalização ${tseT} (TSE)`];
     else[c,t]=['ok',`Ao vivo · totalização TSE ${tseT} · verificado há ${ago<60?ago+'s':Math.floor(ago/60)+' min'}`];
     u.className=c;u.textContent=t}
-  $('upd').textContent='Simulação · base 2º turno 2022';
-  if(LIVE){document.body.classList.add('live');RG.forEach(r=>{r.p=0;r.v={c13:0,c22:0}});poll();setInterval(status,1e3);
+  if(LIVE){document.body.classList.add('live');RG.forEach(r=>{r.lp=0;r.lv={c13:0,c22:0,br:0,nu:0,ab:0}});poll();setInterval(status,1e3);
     // aba oculta não consulta; ao voltar, atualiza na hora se já passou 1 min
     setInterval(()=>{if(!document.hidden)poll()},60e3);document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now()-lastPoll>60e3)poll()})}
   // fogos (gsap): vitória de Lula → foguetes sobem do sul do mapa e explodem em vermelho sobre centróides de regiões sorteadas
@@ -146,10 +213,10 @@ Promise.all(['data/ri.json?v=2','data/uf.json?v=2'].map(u=>fetch(u).then(r=>r.js
   const FOGOS=p=>p<.4?2e6:p<.7?6e5:p<.9?2e5:5e4,acc={c13:0,c22:0};
   // um foguete a partir da região r
   const PAL={c13:{t:'#ffb3b8',g:'#ff2b38',h:['#ff2b38','#ff5a63','#ff8a90','#ffd0d3']},c22:{t:'#b8d0ff',g:'#4f8bff',h:['#4f8bff','#7aa8ff','#a8c6ff','#dbe7ff']}};
-  // som: um dos 4 oggs, sorteado, a cada foguete; só baixa/decodifica após o 1º toque/clique (política de autoplay), cache longo no navegador
-  const SFX=[1,2,3,4].map(n=>`assets/firework-0${n}.ogg?v=1`);let ac=null,bufs=[],voz=0;
+  // som: Lula: um dos 4 firework oggs a cada foguete; Bolsonaro: só um dos 3 moo oggs (sem animação); só baixa/decodifica após o 1º toque/clique (política de autoplay), cache longo no navegador
+  const SFX=[1,2,3,4].map(n=>`assets/firework-0${n}.ogg?v=1`);const MOO=[1,2,3].map(n=>`assets/moo${n}.ogg?v=1`);let ac=null,bufs=[],moos=[],voz=0;
   const unlock=()=>{if(ac)return;ac=new (window.AudioContext||window.webkitAudioContext)();
-    SFX.forEach(u=>fetch(u).then(r=>r.arrayBuffer()).then(b=>ac.decodeAudioData(b)).then(x=>bufs.push(x)).catch(()=>{}))};
+    const ld=(L,A)=>L.forEach(u=>fetch(u).then(r=>r.arrayBuffer()).then(b=>ac.decodeAudioData(b)).then(x=>A.push(x)).catch(()=>{}));ld(SFX,bufs);ld(MOO,moos)};
   // botão de som (preferência salva); desligado não baixa nada
   let somOn=true;try{somOn=localStorage.som!=='0'}catch(e){}
   const ICO={on:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>',
@@ -158,13 +225,18 @@ Promise.all(['data/ri.json?v=2','data/uf.json?v=2'].map(u=>fetch(u).then(r=>r.js
   $('som').onclick=()=>{somOn=!somOn;try{localStorage.som=somOn?'1':'0'}catch(e){}somUI();if(somOn)unlock()};
   ['pointerdown','keydown','touchstart'].forEach(e=>addEventListener(e,()=>{if(somOn)unlock()},{once:true,passive:true}));
   // no máximo 8 sons simultâneos (rajadas de até 30 foguetes por quadro)
-  function sfx(delay){if(!somOn||!ac||!bufs.length||voz>=8)return;const s=ac.createBufferSource();s.buffer=bufs[R()*bufs.length|0];s.connect(ac.destination);voz++;s.onended=()=>voz--;s.start(ac.currentTime+delay)}
-  // aviso no canto inferior direito a cada foguete de votos: "Lula +50 mil votos" (no máximo 4 visíveis)
-  const NOME={c13:'Lula',c22:'Bolsonaro'},abrev=n=>n>=1e6?(n/1e6).toLocaleString('pt-BR')+' mi':(n/1e3|0)+' mil';
-  function toast(k,n,delay){gsap.delayedCall(delay,()=>{const ts=$('ts'),el=document.createElement('div');el.innerHTML=`<b class="${k}">${NOME[k]}</b> +${abrev(n)} votos`;
-    ts.append(el);while(ts.children.length>4)ts.firstChild.remove();
-    gsap.fromTo(el,{opacity:0,x:12},{opacity:1,x:0,duration:.25});gsap.to(el,{opacity:0,duration:.6,delay:2.2,onComplete:()=>el.remove()})})}
-  function launch(r,delay=0,k='c13',sc=1,votos=0){sfx(delay);if(votos)toast(k,votos,delay);const x0=r.cx+(R()-.5)*4,o={x:x0,y:r.cy,a:0,trail:true,k},top=r.cy-(6+R()*6)*Math.sqrt(sc);parts.push(o);
+  function sfx(delay,k){const B=k==='c22'?moos:bufs;if(!somOn||!ac||!B.length||voz>=8)return;const s=ac.createBufferSource();s.buffer=B[R()*B.length|0];s.connect(ac.destination);voz++;s.onended=()=>voz--;s.start(ac.currentTime+delay)}
+  // aviso no canto inferior direito a cada foguete de votos: "Lula +50 mil votos"; cada um fica 5s, independente dos novos
+  const NOME={c13:'Lula',c22:'Bolsonaro'},abrev=n=>n>=1e6?(n/1e6).toLocaleString('pt-BR')+' mi':(n/1e3|0)+' mil',
+    TOAST_MS=5000,calmo=matchMedia('(prefers-reduced-motion:reduce)').matches,
+    TK=calmo?[{opacity:0,offset:0},{opacity:1,offset:.06},{opacity:1,offset:.94},{opacity:0,offset:1}]
+    :[{opacity:0,transform:'translateX(20px) scale(.92)',offset:0,easing:'cubic-bezier(.16,1.1,.3,1)'},{opacity:1,transform:'none',offset:.12},
+      {opacity:1,transform:'none',offset:.915,easing:'cubic-bezier(.5,0,.9,.4)'},{opacity:0,transform:'translateX(12px) scale(.97)',offset:1}];
+  function toast(k,n,delay){gsap.delayedCall(delay,()=>{const ts=$('ts'),el=document.createElement('div');el.className=k;el.innerHTML=`<i></i><b>${NOME[k]}</b><span><em>+${abrev(n)}</em> votos</span>`;
+    ts.append(el);while(ts.children.length>24)ts.firstChild.remove();
+    if(!calmo)ts.animate([{transform:`translateY(${el.offsetHeight+parseFloat(getComputedStyle(ts).rowGap||0)}px)`},{transform:'translateY(0)'}],{duration:520,easing:'cubic-bezier(.16,1,.3,1)',composite:'add'});
+    el.animate(TK,{duration:TOAST_MS}).onfinish=()=>el.remove()})}
+  function launch(r,delay=0,k='c13',sc=1,votos=0){sfx(delay,k);if(votos)toast(k,votos,delay);if(k==='c22')return;const x0=r.cx+(R()-.5)*4,o={x:x0,y:r.cy,a:0,trail:true,k},top=r.cy-(6+R()*6)*Math.sqrt(sc);parts.push(o);
     gsap.to(o,{a:1,duration:.01,delay});
     gsap.to(o,{x:x0+(R()-.5)*3,y:top,duration:.55+R()*.35,delay,ease:'power2.out',onComplete(){parts.splice(parts.indexOf(o),1);burst(o.x,top,k,sc)}})}
   function burst(x,y,k,sc=1){const n=Math.round(36*Math.sqrt(sc)),sp=(4+R()*4)*sc,hue=PAL[k].h;
@@ -172,68 +244,148 @@ Promise.all(['data/ri.json?v=2','data/uf.json?v=2'].map(u=>fetch(u).then(r=>r.js
       gsap.to(o,{x:x+Math.cos(t)*v,y:y+Math.sin(t)*v,duration:1.3,ease:'expo.out'});
       gsap.to(o,{g:3,duration:1.5,ease:'power2.in'}); // gravidade
       gsap.to(o,{a:0,duration:1.5,ease:'power2.in',onComplete(){parts.splice(parts.indexOf(o),1)}})}}
+  // sprites de partícula com brilho pré-renderizado (cor × raio arredondado), em vez de shadowBlur por partícula por quadro
+  const fsp=new Map();function fspr(col,glow,r){const q=Math.max(1,Math.round(r*2))/2,key=col+glow+q;let o=fsp.get(key);if(o)return o;
+    const pad=Math.ceil(q*4)+2,sz=Math.ceil(q*2+pad*2),c=new OffscreenCanvas(sz,sz),x=c.getContext('2d');x.shadowColor=glow;x.shadowBlur=q*3;x.fillStyle=col;x.beginPath();x.arc(sz/2,sz/2,q,0,7);x.fill();x.fill();
+    o={c,h:sz/2};fsp.set(key,o);return o}
+  let hadFx=false;
   function drawFx(){if(fxc.width!==cv.width||fxc.height!==cv.height){fxc.width=cv.width;fxc.height=cv.height;fxc.style.width=cv.style.width;fxc.style.height=cv.style.height}
+    if(!parts.length&&!hadFx)return;hadFx=!!parts.length;
     const p=dim.p;fc2.clearRect(0,0,fxc.width,fxc.height);if(!parts.length)return;fc2.globalCompositeOperation='lighter';
-    for(const o of parts){if(o.a<=0)continue;fc2.globalAlpha=o.a;fc2.fillStyle=o.trail?PAL[o.k].t:o.c;const r=(o.trail?.35:o.sz)*p;
-      fc2.shadowColor=PAL[o.k].g;fc2.shadowBlur=p*1.5;fc2.beginPath();fc2.arc((o.x+1)*p,(o.y+(o.g||0)+1)*p,r,0,7);fc2.fill()}
-    fc2.shadowBlur=0;fc2.globalAlpha=1;fc2.globalCompositeOperation='source-over'}
-  // relógio: 90s de apuração + 6s de pausa; o slider define o % apurado (t por busca binária) e pausa
-  const sl=$('sl'),pl=$('pl'),DUR=90;let tt=0,play=true,jump=false;
+    for(const o of parts){if(o.a<=0)continue;fc2.globalAlpha=o.a;const r=(o.trail?.35:o.sz)*p,sp=fspr(o.trail?PAL[o.k].t:o.c,PAL[o.k].g,r);
+      fc2.drawImage(sp.c,(o.x+1)*p-sp.h,(o.y+(o.g||0)+1)*p-sp.h)}
+    fc2.globalAlpha=1;fc2.globalCompositeOperation='source-over'}
+  // relógio: apuração real ≈ 3 h (2º turno 2022: 17h → ~19h50); velocidade 120× = 90 s (padrão), 1× = tempo real; + 6 s de pausa no fim; o slider define o % apurado (t por busca binária) e pausa
+  const sl=$('sl'),pl=$('pl'),REAL=3*3600,VEL=[120,20,5,1];let SPEED=120,DUR=REAL/SPEED,tt=0,play=true,jump=false;
+  $('sp').onclick=()=>{SPEED=VEL[(VEL.indexOf(SPEED)+1)%VEL.length];DUR=REAL/SPEED;$('sp').textContent=SPEED+'×'};
   const setPlay=v=>{play=v;pl.textContent=v?'❚❚':'▶';pl.ariaLabel=v?'Pausar':'Reproduzir'};
   pl.onclick=()=>{if(!play&&tt>=1)tt=0;setPlay(!play)};
   sl.oninput=()=>{setPlay(false);const g=sl.value/100;let a=0,b=1;for(let i=0;i<30;i++){const m=(a+b)/2;simulate(m).p<g?a=m:b=m}tt=b;jump=true};
-  (function f(now){const dt=Math.min(.1,(now-last)/1000);if(play){tt+=dt/DUR;if(tt>1+6/DUR){tt=0;jump=true}}
-    const T=LIVE?liveT():simulate(Math.min(1,tt)),stamp=jump||now-last>600?now-1e6:now,skip=jump||now-last>600;last=now;jump=false;dark.length=0;if(play)sl.value=T.p*100;
-    for(const r of RG){const k=Math.round(r.n*r.p);if(k<r.k)r.ts.fill(0);for(let j=r.k;j<k;j++)if(!r.ts[j])r.ts[j]=stamp;r.k=k;
-      const sum=K.reduce((t,c)=>t+r.v[c],0)||1;let acc=0;const bd=K.map(c=>Math.round(acc+=r.v[c]/sum*k));
-      // núcleo e borda: quais pontos votaram em candidato segue o sorteio; entre eles, o vencedor da região fica no centro e o perdedor na borda
-      const cats=new Array(k);let a13=0,a22=0;for(let n=0,ci=0;n<k;n++){while(ci<5&&n>=bd[ci])ci++;const c=cats[n]=K[ci];if(c==='c13')a13++;else if(c==='c22')a22++}
-      r.ord??=r.pts.map(([x,y],i)=>[(x-r.cx)**2+(y-r.cy)**2,i]).sort((a,b)=>a[0]-b[0]).map(e=>e[1]);
-      const win=r.v.c13>=r.v.c22?'c13':'c22',los=win==='c13'?'c22':'c13';let nw=win==='c13'?a13:a22;
-      for(const i of r.ord)if(i<k&&(cats[i]==='c13'||cats[i]==='c22'))cats[i]=nw-->0?win:los;
-      for(let n=0;n<k;n++){const t=ease((now-r.ts[n])/4000);if(t<=0)continue;const[x,y]=r.pts[n],cat=cats[n];
-        if(cat==='c13'||cat==='c22')dark.push(x,y,t,cat)}}
-    for(const r of RG)r.fog+=(1-r.p-r.fog)*.04;
-    const md=mi.data;md.fill(0);
-    for(let y=0;y<H;y++)for(let x=0;x<G;x++){const c=cell[y*G+x];if(c<0)continue;md[((y+1)*W+x+1)*4+3]=255*RG[c].fog}
-    mc.putImageData(mi,0,0);
-    const c=cv.getContext('2d'),{p,dpr}=dim;c.clearRect(0,0,cv.width,cv.height);
-    // camada de névoa em meia resolução: ruído A + ruído B, recortado pela máscara borrada
-    const fw=cv.width>>1,fh=cv.height>>1;if(!fc||fc.width!==fw||fc.height!==fh){fc=new OffscreenCanvas(fw,fh);fx=fc.getContext('2d')}
-    const ps=p/2,pat=fx.createPattern(nz,'repeat');fx.globalCompositeOperation='source-over';fx.clearRect(0,0,fw,fh);
-    fx.globalAlpha=.85;pat.setTransform(new DOMMatrix().translate(fog.ax*ps,fog.ay*ps).scale(ps*.9));fx.fillStyle=pat;fx.fillRect(0,0,fw,fh);
-    fx.globalAlpha=.6;pat.setTransform(new DOMMatrix().translate(fog.bx*ps,fog.by*ps).scale(ps*.5));fx.fillStyle=pat;fx.fillRect(0,0,fw,fh);
-    fx.globalAlpha=1;fx.fillStyle=`rgba(${MIST},.22)`;fx.fillRect(0,0,fw,fh);
-    fx.globalCompositeOperation='destination-in';fx.filter=`blur(${ps*3}px)`;fx.drawImage(mist,0,0,fw,fh);fx.filter='none';
-    c.globalAlpha=Math.min(1,fog.br*1.05);c.filter=`blur(${p*1.2}px)`;c.drawImage(fc,0,0,cv.width,cv.height);c.filter='none';
-    // só 13 e 22 no mapa (brancos, nulos e abstenção não aparecem); círculos pequenos e opacos (80%), sem soma de luz
-    const s=Math.max(dpr*1.2,p*.3);if(spr.s!==s)sprites(s);
-    for(let i=0;i<dark.length;i+=4){c.globalAlpha=dark[i+2]*OP[dark[i+3]];c.drawImage(spr[dark[i+3]],(dark[i]+1)*p-s,(dark[i+1]+1)*p-s)}
-    c.globalCompositeOperation='source-over';c.globalAlpha=1;c.lineJoin='round';
-    c.lineWidth=dpr*.5;c.strokeStyle='rgba(207,217,255,.06)';c.stroke(pr);
-    c.lineWidth=dpr;c.strokeStyle='rgba(207,217,255,.2)';c.stroke(pu);
-    if(hov>=0){const r=RG[hov];c.lineWidth=dpr*1.5;c.strokeStyle='rgba(255,255,255,.7)';c.stroke(path(r.poly,p));
-      const vv=r.v.c13+r.v.c22,a=vv?r.v.c13/vv:0,tt=$('tt');
-      tt.innerHTML=`<h3>${r.nome} · ${r.uf.toUpperCase()}</h3><div class="s">${pct(r.p,0)} do eleitorado apurado · ${fmt(r.e)} eleitores</div>`+(vv?`<div class="l"><span>Lula</span>${pct(a,2)}</div><div class="l"><span>Bolsonaro</span>${pct(1-a,2)}</div><div class="b"><i style="width:${a*100}%;background:#ff2b38"></i><i style="flex:1;background:#4f8bff"></i></div>`:'<div class="l"><span>Sem votos apurados</span></div>');
-      const w=tt.offsetWidth,h=tt.offsetHeight;tt.style.left=Math.min(mx+16,innerWidth-w-8)+'px';tt.style.top=(my+16+h>innerHeight?my-h-12:my+16)+'px';tt.style.opacity=1}else $('tt').style.opacity=0;
+  // painel: compara a apuração de agora com um baseline estático (data/hist.json: votos Lula/Bolsonaro por UF) escolhido no toggle.
+  // um ponto por UF, ordenado por eleitorado; círculo escuro = baseline, ponto colorido = agora; linha na cor de quem ganhou terreno sobre o baseline
+  const NOMES={AC:'Acre',AL:'Alagoas',AP:'Amapá',AM:'Amazonas',BA:'Bahia',CE:'Ceará',DF:'Distrito Federal',ES:'Espírito Santo',GO:'Goiás',MA:'Maranhão',MT:'Mato Grosso',MS:'Mato Grosso do Sul',MG:'Minas Gerais',PA:'Pará',PB:'Paraíba',PR:'Paraná',PE:'Pernambuco',PI:'Piauí',RJ:'Rio de Janeiro',RN:'Rio Grande do Norte',RS:'Rio Grande do Sul',RO:'Rondônia',RR:'Roraima',SC:'Santa Catarina',SP:'São Paulo',SE:'Sergipe',TO:'Tocantins'};
+  const AB0=HIST.abBR26[1]/HIST.abBR26[0];let AL=.15,AH=.25;const ABX=v=>Math.max(0,Math.min(100,(v-AL)/(AH-AL)*100));
+  // escala do cartão: 15–25% por padrão; se agora ou o 1º turno saírem dela, estende em passos de 5 pp
+  function abScale(v){const lo=Math.min(.15,Math.floor(Math.min(v,AB0)*20)/20),hi=Math.max(.25,Math.ceil(Math.max(v,AB0)*20)/20);if(lo===AL&&hi===AH&&$('abn')._s)return;AL=lo;AH=hi;$('abn')._s=1;
+    $('abl0').textContent=pct(AL,0);$('abl1').textContent=pct(AH,0);$('abn').style.setProperty('--tk',ABX(AB0)+'%')}abScale(AB0);
+  const BASES={22:'2022 · 2º turno',26:'2026 · 1º turno'},E={};RG.forEach(r=>{if(!r.ext)E[r.uf]=(E[r.uf]||0)+r.e});
+  const UL=Object.keys(E).sort((a,b)=>E[b]-E[a]).map(uf=>({uf})),dr=$('dr'),AX=.34,X=v=>Math.max(0,Math.min(100,(.5+(.5-v)/(2*AX))*100));
+  let BASE=26;const MINAP=.15; // abaixo disso a UF só mostra o ponto esmaecido: poucas regiões apuradas dão variação enviesada
+  UL.forEach(u=>{const e=document.createElement('div');e.className='dr';
+    e.innerHTML=`<span class="nm">${NOMES[u.uf.toUpperCase()]||u.uf}</span><div class="tk"><i class="ln"></i><i class="d0"></i><i class="d1"></i></div><span class="vr">—</span>`;
+    u.el=e;$('drr').append(e);[u.ln,u.d0,u.d1]=e.querySelectorAll('i');u.vr=e.lastChild});
+  const pp=v=>(Math.abs(v)*100).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+' pp',sh=([a,b])=>a/(a+b);
+  // escrita no DOM só quando o valor muda (cache por elemento); agregação por UF via índice pré-computado; reordena só se a ordem mudar
+  const UI={};UL.forEach((u,i)=>{UI[u.uf]=i;u.c={}});const RU=RG.map(r=>UI[r.uf]??-1),drr=$('drr'),hl=$('hl');
+  const sty=(u,el,p,v)=>{const key=el+p;if(u.c[key]!==v){u.c[key]=v;u[el].style[p]=v}},att=(u,el,p,v)=>{const key=el+p;if(u.c[key]!==v){u.c[key]=v;u[el][p]=v}};
+  let ord='',hlS='';const ca=new Float64Array(UL.length),cb=new Float64Array(UL.length),cw=new Float64Array(UL.length);
+  function drawChart(T){const H=HIST[BASE];ca.fill(0);cb.fill(0);cw.fill(0);
+    for(let i=0;i<RG.length;i++){const j=RU[i];if(j<0)continue;const r=RG[i];ca[j]+=r.v.c13;cb[j]+=r.v.c22;cw[j]+=r.e*r.p}
+    let nl=0,nb=0;
+    UL.forEach((u,i)=>{const n=ca[i]+cb[i],sb=sh(H[u.uf]),x0=X(sb);sty(u,'d0','left',x0+'%');
+      if(!n){u.s=null;sty(u,'ln','opacity','0');sty(u,'d1','opacity','0');att(u,'vr','textContent','—');att(u,'vr','className','vr');return}
+      const v=ca[i]/n,x1=X(v),d=v-sb,ap=cw[i]/E[u.uf],lo=ap<MINAP,k=lo||Math.abs(d)<5e-4?'':d>0?'c13':'c22';
+      u.s=lo?null:d;sty(u,'d1','left',x1+'%');sty(u,'d1','opacity',lo?'0.4':'1');att(u,'d1','className','d1 '+(lo?'lo':k));
+      sty(u,'ln','left',Math.min(x0,x1)+'%');sty(u,'ln','width',Math.abs(x1-x0)+'%');sty(u,'ln','opacity',k?'1':'0');att(u,'ln','className','ln '+k);
+      att(u,'vr','className','vr '+(lo?'lo':k));att(u,'vr','textContent',lo?pct(ap,0)+' apurado':k?(d>0?'◀ '+pp(d):pp(d)+' ▶'):'—');
+      if(!lo){if(k==='c13')nl++;else if(k==='c22')nb++}});
+    const so=UL.map((u,i)=>[u,i]).sort(([a,i],[b,j])=>a.s==null?(b.s==null?i-j:1):b.s==null?-1:b.s-a.s),o=so.map(x=>x[1]).join();
+    if(o!==ord){ord=o;drr.append(...so.map(([u])=>u.el))}
+    const h=`Lula cresceu em <em>${nl} ${nl===1?'estado':'estados'}</em> e Bolsonaro em <u>${nb}</u>.`;if(h!==hlS){hlS=h;hl.innerHTML=h}}
+  let lc=0,lcd=true;const setOpen=v=>{const was=dr.classList.contains('on');dr.classList.toggle('on',v);$('mn').setAttribute('aria-expanded',v);lc=0;lcd=true;if(v)$('dx').focus();else if(was)$('mn').focus()};
+  $('mn').onclick=()=>setOpen(!dr.classList.contains('on'));$('dx').onclick=()=>setOpen(false);addEventListener('keydown',e=>{if(e.key==='Escape'&&dr.classList.contains('on'))setOpen(false)});
+  const setBase=b=>{BASE=b;$('s22').setAttribute('aria-pressed',b===22);$('s26').setAttribute('aria-pressed',b===26);lc=0;lcd=true};
+  $('s22').onclick=()=>setBase(22);$('s26').onclick=()=>setBase(26);
+  // moldura do Exterior: fundo (antes da névoa) e contorno tracejado + rótulos (depois do mapa); tipografia em unidades do passo dos pontos
+  function extFrame(c,p,dpr,top){const[x,y,w,h,P]=ext.fr,u=P*p;c.beginPath();
+    if(c.roundRect)c.roundRect((x+1)*p,(y+1)*p,w*p,h*p,1.4*u);else c.rect((x+1)*p,(y+1)*p,w*p,h*p);
+    if(!top){c.fillStyle='rgba(5,6,11,.55)';c.fill();return}
+    c.setLineDash([.7*u,.7*u]);c.lineWidth=dpr;c.strokeStyle='rgba(223,230,245,.4)';c.stroke();c.setLineDash([]);
+    const L=(x+1)*p+2.4*u,aw=w*p-4.8*u,F='Inter,system-ui,sans-serif';c.textAlign='left';
+    const txt=(s,f,wt,fill,yy,base)=>{f=Math.max(f,8*dpr);c.font=`${wt} ${f}px ${F}`;try{c.letterSpacing=wt===700?f*.14+'px':'0px'}catch(e){}
+      const m=c.measureText(s).width;if(m>aw)c.font=`${wt} ${Math.max(f*aw/m,6*dpr)}px ${F}`;c.fillStyle=fill;c.textBaseline=base;c.fillText(s,L,yy)};
+    txt('EXTERIOR',2.6*u,700,'#dfe6f5',(y+1)*p+1.5*u,'top');
+    try{c.letterSpacing='0px'}catch(e){}}
+  // categorias dos pontos de uma região (0=c22 1=c13 2=br 3=nu 4=ab), recalculadas só quando k ou os votos mudam
+  function recat(r,k){const sum=K.reduce((t,c)=>t+r.v[c],0)||1,sig=k+'|'+(r.v.c13|0)+'|'+(r.v.c22|0)+'|'+(r.v.br|0)+'|'+(r.v.nu|0)+'|'+(r.v.ab|0);if(r.sig===sig)return false;r.sig=sig;
+    r.cats??=new Uint8Array(r.n);const cats=r.cats;let acc=0;const bd=K.map(c=>Math.round(acc+=r.v[c]/sum*k));
+    let a13=0,a22=0;for(let n=0,ci=0;n<k;n++){while(ci<5&&n>=bd[ci])ci++;cats[n]=ci;if(ci===1)a13++;else if(ci===0)a22++}
+    // núcleo e borda: quais pontos votaram em candidato segue o sorteio; entre eles, o vencedor da região fica no centro e o perdedor na borda
+    r.ord??=r.pts.map(([x,y],i)=>[(x-r.cx)**2+(y-r.cy)**2,i]).sort((a,b)=>a[0]-b[0]).map(e=>e[1]);
+    const win=r.v.c13>=r.v.c22?1:0,los=1-win;let nw=win?a13:a22;
+    for(const i of r.ord)if(i<k&&cats[i]<2)cats[i]=nw-->0?win:los;return true}
+  // camada estática por região: offscreen do tamanho da caixa dos pontos; recebe os pontos já assentados (fade completo) em lotes
+  function bake(r,m,now){const{p}=dim,s=spr.s;if(!r.sc){const[x0,y0,x1,y1]=r.bb;r.ox=Math.floor((x0+1)*p-s)-1;r.oy=Math.floor((y0+1)*p-s)-1;r.sw=Math.ceil((x1+1)*p+s)+2-r.ox;r.sh=Math.ceil((y1+1)*p+s)+2-r.oy;r.sc=new OffscreenCanvas(r.sw,r.sh);r.sx=r.sc.getContext('2d');r.nb=0}
+    const x=r.sx;if(r.nb===0)x.clearRect(0,0,r.sw,r.sh);
+    for(let n=r.nb;n<m;n++){const ci=r.cats[n];if(ci>1)continue;const[px,py]=r.pts[n],k=K[ci];x.globalAlpha=OP[k];x.drawImage(spr[k],(px+1)*p-s-r.ox,(py+1)*p-s-r.oy)}
+    r.nb=m;r.bt=now}
+  let drawnSeq=-1,lastHov=-2,ttKey='',first=true;
+  (function f(now){hov=pick();if(!cv.width||!cv.height)return requestAnimationFrame(f); // painel sem tamanho (aba oculta/resize): não desenha nem trava o laço
+    const dt=Math.min(.1,(now-last)/1000);if(play){tt+=dt/DUR;if(tt>1+6/DUR){tt=0;jump=true}}
+    if(LIVE)for(const r of RG){r.p=r.lp;r.v=r.lv}
+    const T=LIVE?liveT():simulate(Math.min(1,tt)),stamp=jump||sync||now-last>600?now-1e6:now,skip=jump||sync||now-last>600;last=now;
+    // dados novos: ao vivo só quando chega um live.json; na simulação, enquanto toca ou após salto
+    const dataNew=first||(LIVE?seq!==drawnSeq||sync:play||jump);drawnSeq=seq;jump=sync=false;if(play)sl.value=T.p*100;
+    const c=cv.getContext('2d'),{p,dpr}=dim,s=Math.max(dpr*1.2,p*.3);if(spr.s!==s){sprites(s);for(const r of RG){r.sc=null;r.nb=0}}
+    // pontos: categorias em cache; assentados vão para a camada estática da região; só os que ainda animam são desenhados um a um
+    dark.length=0;let anim=0;
+    for(const r of RG){const k=Math.round(r.n*r.p);if(k<r.k){r.ts.fill(0);r.nb=0}for(let j=r.k;j<k;j++)if(!r.ts[j])r.ts[j]=stamp;r.k=k;
+      if(dataNew||k!==r.ck){r.ck=k;if(recat(r,k))r.nb=0}
+      let m=r.nb;while(m<k&&now-r.ts[m]>=4000)m++;
+      if(m>r.nb&&(m===k||now-(r.bt||0)>400))bake(r,m,now);
+      for(let n=r.nb;n<k;n++){const t=ease((now-r.ts[n])/4000);if(t<=0)continue;if(t<1)anim++;const ci=r.cats[n];if(ci<2){const[x,y]=r.pts[n];dark.push(x,y,t,K[ci])}}}
+    // névoa: valor por região quantizado (0–255); só regiões que mudaram reescrevem suas células; máscara borrada em cache
+    const md=mi.data;let fogDirty=false,fogAny=false;
+    for(let i=0;i<RG.length;i++){const r=RG[i];r.fog+=(1-r.p-r.fog)*.04;if(Math.abs(r.fog-(1-r.p))<.002)r.fog=1-r.p;const q=Math.round(255*r.fog);
+      if(q!==r.fq){r.fq=q;fogDirty=true;const L=CO[i];for(let j=0;j<L.length;j++)md[L[j]]=q}if(q)fogAny=true}
+    const fw=Math.ceil(cv.width/6),fh=Math.ceil(cv.height/6);
+    if(!fc||fc.width!==fw||fc.height!==fh){fc=new OffscreenCanvas(fw,fh);fx=fc.getContext('2d');mb=new OffscreenCanvas(fw,fh);mbx=mb.getContext('2d');fogDirty=true}
+    if(fogDirty){mc.putImageData(mi,0,0);mbx.clearRect(0,0,fw,fh);mbx.filter=`blur(${p/2}px)`;mbx.drawImage(mist,0,0,fw,fh);mbx.filter='none'}
+    // quadro ocioso: nada a redesenhar no mapa (ao vivo entre atualizações, apuração encerrada)
+    const draw=dataNew||anim>0||dark.length>0||fogAny||resized||hov!==lastHov;lastHov=hov;resized=false;
+    if(draw){c.clearRect(0,0,cv.width,cv.height);extFrame(c,p,dpr,false);
+      if(fogAny){ // camada de névoa a 1/6 da resolução: ruído A + ruído B, recortado pela máscara já borrada; a ampliação 6× (bilinear) faz o suavizado final, sem filter por quadro
+        const ps=p/6,pat=fx.createPattern(nz,'repeat');fx.globalCompositeOperation='source-over';fx.clearRect(0,0,fw,fh);
+        fx.globalAlpha=.85;pat.setTransform(new DOMMatrix().translate(fog.ax*ps,fog.ay*ps).scale(ps*.9));fx.fillStyle=pat;fx.fillRect(0,0,fw,fh);
+        fx.globalAlpha=.6;pat.setTransform(new DOMMatrix().translate(fog.bx*ps,fog.by*ps).scale(ps*.5));fx.fillStyle=pat;fx.fillRect(0,0,fw,fh);
+        fx.globalAlpha=1;fx.fillStyle=`rgba(${MIST},.22)`;fx.fillRect(0,0,fw,fh);
+        fx.globalCompositeOperation='destination-in';fx.drawImage(mb,0,0);
+        c.globalAlpha=Math.min(1,fog.br*1.05);c.imageSmoothingEnabled=true;c.drawImage(fc,0,0,cv.width,cv.height)}
+      // só 13 e 22 no mapa (brancos, nulos e abstenção não aparecem); círculos pequenos e opacos (80%), sem soma de luz
+      c.globalAlpha=1;for(const r of RG)if(r.nb>0)c.drawImage(r.sc,r.ox,r.oy);
+      for(let i=0;i<dark.length;i+=4){c.globalAlpha=dark[i+2]*OP[dark[i+3]];c.drawImage(spr[dark[i+3]],(dark[i]+1)*p-s,(dark[i+1]+1)*p-s)}
+      c.globalCompositeOperation='source-over';c.globalAlpha=1;c.lineJoin='round';
+      c.lineWidth=dpr*.5;c.strokeStyle='rgba(207,217,255,.06)';c.stroke(pr);
+      c.lineWidth=dpr;c.strokeStyle='rgba(207,217,255,.2)';c.stroke(pu);extFrame(c,p,dpr,true);
+      if(hov>=0){const r=RG[hov];c.lineWidth=dpr*1.5;c.strokeStyle='rgba(255,255,255,.7)';c.stroke(path(r.poly,p))}}
+    // tooltip: HTML só quando a região ou seus números mudam; posição a cada quadro
+    if(hov>=0){const r=RG[hov],vv=r.v.c13+r.v.c22,a=vv?r.v.c13/vv:0,tt=$('tt'),key=hov+'|'+(r.p*1e4|0)+'|'+(r.v.c13|0)+'|'+(r.v.c22|0);
+      if(key!==ttKey){ttKey=key;tt.innerHTML=`<h3>${r.nome} · ${r.uf.toUpperCase()}</h3><div class="s">${pct(r.p,0)} do eleitorado apurado · ${fmt(r.e)} eleitores</div>`+(vv?`<div class="l"><span>Lula</span>${pct(a,2)}</div><div class="l"><span>Bolsonaro</span>${pct(1-a,2)}</div><div class="b"><i style="width:${a*100}%;background:#ff2b38"></i><i style="flex:1;background:#4f8bff"></i></div>`:'<div class="l"><span>Sem votos apurados</span></div>')}
+      const w=tt.offsetWidth,h=tt.offsetHeight;tt.style.left=Math.min(mx+16,innerWidth-w-8)+'px';tt.style.top=(my+16+h>innerHeight?my-h-12:my+16)+'px';tt.style.opacity=1}else if(ttKey){ttKey='';$('tt').style.opacity=0}
+    if(dataNew){first=false;
     $('p22').innerHTML=bigPct(T.c22/T.e);$('p13').innerHTML=bigPct(T.c13/T.e);
     // teto: votos atuais + todo o eleitorado ainda não apurado
     const rest=T.e*(1-T.p);const vv=T.c13+T.c22;$('w13').textContent=vv?pct(T.c13/vv,2)+' dos válidos':'';$('w22').textContent=vv?pct(T.c22/vv,2)+' dos válidos':'';$('v22').textContent=fmt(T.c22);$('v13').textContent=fmt(T.c13);$('apu').textContent=pct(T.p,0);
+    // abstenção nacional até agora (abstenções / eleitorado apurado) × 1º turno 2026 (hist.json abBR26)
+    const est=T.e*T.p,abr=est?T.ab/est:0,abn=$('abn');if(abn.hidden!==!est)abn.hidden=!est;
+    if(est&&abn._v!==abr){abn._v=abr;const d=abr-AB0,k=Math.abs(d)<5e-4?'':d>0?'up':'dn';abScale(abr);$('abv').textContent=pct(abr,1);$('abp').style.left=ABX(abr)+'%';$('abp').className='d1 '+k;
+      $('abd').className=k;$('abd').textContent=(k==='up'?'▲ ':k==='dn'?'▼ ':'')+pp(d)}
     // definição matemática: o líder vence quando sua vantagem supera todo o eleitorado ainda não apurado
     const lead=T.c13-T.c22,falta=(rest-Math.abs(lead))/T.e,lid=lead>0?'Lula':'Bolsonaro',dc=$('dec');
     // um foguete a cada FOGOS(p) votos novos de cada candidato, saindo de região sorteada pelo peso dos votos novos;
-    // saltos (slider, aba oculta) só sincronizam; no máximo 30 foguetes por quadro
+    // saltos (slider, aba oculta, 1ª carga ao vivo) só sincronizam; no máximo 3 foguetes por quadro e fila de até 40 (o atraso além disso é descartado)
     // com eleito definido, o perdedor não solta fogos
     const loser=T.p>0&&falta<=0?(lead>0?'c22':'c13'):null;
     for(const k of ['c13','c22']){let sum=0;const dv=RG.map(r=>{const d=Math.max(0,r.v[k]-(r['l'+k]??r.v[k]));r['l'+k]=r.v[k];sum+=d;return d});
-      const N=FOGOS(T.p),sc=Math.sqrt(N/2e5);if(skip||k===loser){acc[k]=0;continue}acc[k]+=sum;let n=Math.min(30,acc[k]/N|0);acc[k]-=n*N;
+      const N=FOGOS(T.p),sc=Math.sqrt(N/2e5);if(skip||k===loser){acc[k]=0;continue}acc[k]+=sum;let n=Math.min(3,acc[k]/N|0);acc[k]=Math.min(acc[k]-n*N,40*N);
       while(n-->0){let t=R()*sum,i=0;while(i<RG.length-1&&(t-=dv[i])>0)i++;launch(RG[i],R()*.8,k,sc,N)}}
     if(T.p>0&&falta<=0&&lead>0&&!won){won=true;fireworks(++gen)}if(T.p===0||falta>0)won=false;
     if(T.p>0&&falta<=0){dc.className='ok '+(lead>0?'n13':'n22');dc.innerHTML=`<b>${lid} eleito</b>`}
     else{dc.className='';dc.innerHTML=`<b>${T.p>0?pct(falta,1):'—'}</b>restante para definição`}
     // barra = votos 13 + votos 22 + eleitorado não apurado; o corte (meio) é a vantagem matemática: quem cruzar vence
     const S=T.c13+T.c22+rest||1;$('b13').style.width=T.c13/S*100+'%';$('b22').style.width=T.c22/S*100+'%';
-
+    lcd=true}
+    if(dr.classList.contains('on')&&lcd&&now-lc>400){lc=now;lcd=false;drawChart(T)}
     drawFx();requestAnimationFrame(f)})(performance.now());
 });
 </script></body></html>
