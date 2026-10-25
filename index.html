@@ -200,11 +200,11 @@ Promise.all(['data/ri.json?v=2','data/uf.json?v=2','data/hist.json?v=1'].map(u=>
     catch(e){fail++;console.warn('live',e);retry=setTimeout(()=>{if(!document.hidden)poll()},15e3)}status()}
   // indicador: ok = TSE consultado há pouco; wait = antes da 1ª totalização; warn = falha de rede; err = coletor sem publicar há 5 min
   function status(){const u=$('upd'),ago=Math.round((Date.now()-lastOk)/1e3),late=Date.now()/1e3-lastS>300,cl=Math.floor((Date.now()/1e3-lastS)/60);let c,t,h;
-    if(!lastOk)[c,t,h]=fail?['err','Sem conexão · tentando de novo','Não foi possível acessar o servidor de dados. Verifique sua internet.']:['','Conectando…','Buscando os dados mais recentes do servidor.'];
-    else if(!started)[c,t,h]=['wait','Aguardando início da apuração · 17h (Brasília)','Sincronizado com o servidor: o coletor (PC do autor) está publicando, mas o TSE ainda não divulgou a 1ª totalização.'];
-    else if(fail)[c,t,h]=['warn',`Reconectando… · dados de ${tseT} (TSE)`,'Falha ao buscar a atualização; sua conexão com o servidor está instável. Mostrando os últimos dados recebidos.'];
-    else if(late)[c,t,h]=['err',`Dados atrasados · última totalização ${tseT} (TSE)`,`Sem sincronizar: o coletor (PC do autor) não publica há ${cl} min. Pode estar desligado, sem internet ou bloqueado pelo TSE.`];
-    else[c,t,h]=['ok',`Ao vivo · totalização TSE ${tseT} · verificado há ${ago<60?ago+'s':Math.floor(ago/60)+' min'}`,`Sincronizando: o coletor (PC do autor) consultou o TSE e publicou os dados há ${Math.max(0,Math.round(Date.now()/1e3-lastS))}s. O site confere o servidor a cada minuto.`];
+    if(!lastOk)[c,t,h]=fail?['err','Sem conexão · tentando de novo','Não foi possível carregar os dados. Verifique sua conexão com a internet.']:['','Conectando…','Carregando os dados mais recentes.'];
+    else if(!started)[c,t,h]=['wait','Aguardando início da apuração · 17h (Brasília)','Tudo certo: a coleta de dados está funcionando. O TSE ainda não divulgou a primeira totalização.'];
+    else if(fail)[c,t,h]=['warn',`Reconectando… · dados de ${tseT} (TSE)`,'Não foi possível atualizar agora. Mostrando os últimos dados recebidos; uma nova tentativa será feita em instantes.'];
+    else if(late)[c,t,h]=['err',`Dados atrasados · última totalização ${tseT} (TSE)`,`A coleta de dados está sem atualizar há ${cl} min. Os números exibidos são da última totalização recebida.`];
+    else[c,t,h]=['ok',`Ao vivo · totalização TSE ${tseT} · verificado há ${ago<60?ago+'s':Math.floor(ago/60)+' min'}`,`Dados em dia: a última atualização do TSE foi coletada há ${Math.max(0,Math.round(Date.now()/1e3-lastS))}s. A página verifica novidades a cada minuto.`];
     u.className=c;u.textContent=t;u.dataset.tip=h}
   // online agora: heartbeat a cada 60 s com a aba visível (/api/online, só existe em produção); some se a API não responder
   let sid;try{sid=sessionStorage.sid||(sessionStorage.sid=Math.random().toString(36).slice(2))}catch(e){sid=Math.random().toString(36).slice(2)}
